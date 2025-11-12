@@ -7,7 +7,7 @@ class Akas:
                language,
                attributes,
                is_original_title
-            );
+            ):
 
             self.title_id = title_id
             self.movie_id = movie_id
