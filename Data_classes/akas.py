@@ -1,4 +1,4 @@
-class Akas
+class Akas:
   def __init__(self,
                title_id,
                movie_id,
