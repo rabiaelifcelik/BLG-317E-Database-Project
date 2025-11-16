@@ -25,7 +25,7 @@ class Database:
     def get_titles(self):
         titles = []
         for title_id, title in self.titles.items():
-            title_ = Titles(title.title_id, title.primary_title, title.original_title, title.is_adult, title.start_year, title.end_year, title.runtime_mins, title.genres)
-            titles.append((title_id, title))
+            title_= Titles(title.title_id, title.primary_title, title.original_title, title.is_adult, title.start_year, title.end_year, title.runtime_mins, title.genres)
+            titles.append((title_id, title_))
 
         return titles
