@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!-- This kind of structure helps writing layouts and helps to customize each page from similar templates -->
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="/static/style.css"/>
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+        <header>
+        <nav>
+            <a href="{{ url_for('home_page') }}">Home</a>
+            <a href="{{ url_for('titles_page') }}">Titles</a> <!-- While writing the href, the parameter inside the url_for functions must be same as what we write to in flask as function name for that page -->
+            <a href="{{ url_for('cast_page') }}">Cast</a>
+          </span>
+        </nav>
+    </header>
+    <body>
+        {% block content %}
+        {% endblock %}
+
+    </body>
+    <footer>
+        <small>BLG-317 Database Systems Project, 2025-2026</small>
+    </footer>
+</html>

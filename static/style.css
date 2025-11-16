@@ -1,0 +1,23 @@
+h1 {
+    color: rgb(245, 228, 145);
+}
+
+body {
+    background-color:rgb(33, 71, 52);
+    color:white;
+}
+
+a {
+    background-color:rgb(249, 178, 72);
+    padding: 5px;
+    border-radius: 5px;
+    color:rgb(33, 71, 52);
+    text-decoration: none;
+    box-shadow: inset;
+}
+
+footer {
+    align-content: center;
+    text-align: center;
+    color: rgb(99, 177, 133);
+}

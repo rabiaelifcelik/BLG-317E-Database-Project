@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Movies{% endblock %}
+{% block content %}
+        <h1 class="title">Titles</h1>
+
+        {% if titles %}
+        
+        {% for title_id, title in titles %}
+                <b>{{ title.primary_title }}</b>, {{title.start_year}}, {{title.genres}}<br/>
+        {% endfor %}
+    
+        {% endif %}
+{% endblock %}
