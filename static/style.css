@@ -28,6 +28,7 @@ nav {
     height: 40px;
     align-content: center;
     margin: 0px;
+    font-family: Helvetica, sans-serif;
 }
 
 .header-div{
@@ -49,6 +50,7 @@ header {
     align-items: center;
     display: flex;
     justify-content:left;
+    
 }
 
 footer {

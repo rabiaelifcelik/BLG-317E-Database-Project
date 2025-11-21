@@ -1,9 +1,10 @@
-import os
+import pymysql
 
-class Config:
-    SECRET_KEY = "your-secret-key" # To be fixed
-    MYSQL_HOST = "localhost"
-    MYSQL_USER = "root"
-    MYSQL_PASSWORD = "root"
-    MYSQL_DB = "movies_db"
-    MYSQL_CURSORCLASS = "DictCursor"
+connection = pymysql.connect(
+    host='localhost',
+    user='root',
+    password='root',
+    database='myDb',
+    charset='utf8mb4',
+    cursorclass=pymysql.cursors.DictCursor
+)

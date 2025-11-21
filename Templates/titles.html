@@ -5,8 +5,8 @@
 
         {% if titles %}
         
-        {% for title_id, title in titles %}
-                <b>{{ title.primary_title }}</b>, {{title.start_year}}, {{title.genres}}<br/>
+        {% for title in titles %}
+                <b>{{ title.primaryTitle }}</b>, {{title.startYear}}, {{title.genres}}<br/>
         {% endfor %}
     
         {% endif %}
