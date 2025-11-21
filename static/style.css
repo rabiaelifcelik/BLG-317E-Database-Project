@@ -1,23 +1,58 @@
 h1 {
-    color: rgb(245, 228, 145);
+    color: rgb(255, 129, 213);
 }
 
 body {
-    background-color:rgb(33, 71, 52);
+    background-color:rgb(33, 46, 95);    
     color:white;
 }
 
+.main-content {
+    margin:20px;
+    height:200px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 2px;
+    border-radius: 6px;
+}
+
 a {
-    background-color:rgb(249, 178, 72);
     padding: 5px;
     border-radius: 5px;
-    color:rgb(33, 71, 52);
+    color:rgb(253, 255, 254);
     text-decoration: none;
     box-shadow: inset;
+}
+
+nav {
+    height: 40px;
+    align-content: center;
+    margin: 0px;
+}
+
+.header-div{
+    margin:10px;
+    margin-left: 25px;
+    margin-right:40px;
+    font-family:'Times New Roman', Times, serif;
+    font-size: 30px;
+    font-style:oblique;
+    font-weight: 800;
+    color:#ddff44;
+    text-shadow: 1px 1px 4px #ffc0cb;
+}
+
+header {
+    margin: 0px;
+    align-content: center;
+    align-self: center;
+    align-items: center;
+    display: flex;
+    justify-content:left;
 }
 
 footer {
     align-content: center;
     text-align: center;
-    color: rgb(99, 177, 133);
+    color: rgb(129, 137, 255);
 }

@@ -1,9 +1,10 @@
 from flask import render_template, current_app, abort, request, redirect, url_for, Flask
+import pymysql
 import sys
 
-sys.path.append("Data_classes")
-from Data_classes.database import Database
-from Data_classes.titles import Titles
+sys.path.append("models")
+from models.database import Database
+from models.titles import Titles
 
 app = Flask(__name__)
 

@@ -6,18 +6,21 @@
         <link rel="stylesheet" href="/static/style.css"/>
         <title>{% block title %}{% endblock %}</title>
     </head>
-        <header>
+    <header>
+        <div class="header-div">
+            Movie Surf
+        </div>
         <nav>
             <a href="{{ url_for('home_page') }}">Home</a>
             <a href="{{ url_for('titles_page') }}">Titles</a> <!-- While writing the href, the parameter inside the url_for functions must be same as what we write to in flask as function name for that page -->
             <a href="{{ url_for('cast_page') }}">Cast</a>
-          </span>
         </nav>
     </header>
     <body>
+        <div class="main-content">
         {% block content %}
         {% endblock %}
-
+        </div>
     </body>
     <footer>
         <small>BLG-317 Database Systems Project, 2025-2026</small>
