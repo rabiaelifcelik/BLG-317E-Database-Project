@@ -1,44 +1,73 @@
 {% extends "layout.html" %}
 {% block title %}Principals{% endblock %}
 {% block content %}
-        <h1 class="title">Principals</h1>
+    <link rel="stylesheet" href="/static/principals.css"/>
+    
+    <div class="principals-container">
+        <h1 class="principals-title">🎬 Cast & Crew</h1>
         
-        <div style="margin-bottom: 20px;">
-                <a href="{{ url_for('principal_add_page') }}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-                        Add New Principal
-                </a>
+        <div style="text-align: center; margin-bottom: 30px;">
+            <a href="{{ url_for('principal_add_page') }}" class="btn-primary">
+                ➕ Add New Principal
+            </a>
         </div>
 
         {% if principals %}
-        <div class="scrollable-content">
-        <table class="movie-table">
+        <div class="scrollable-content" style="background: transparent;">
+            <table class="principals-table">
                 <thead>
-                        <tr>
-                                <th>Principal ID</th>
-                                <th>Title ID</th>
-                                <th>Name ID</th>
-                                <th>Category</th>
-                                <th>Job</th>
-                                <th>Details</th>
-                        </tr>
+                    <tr>
+                        <th>👤 Person</th>
+                        <th>🎬 Title</th>
+                        <th>🎭 Role</th>
+                        <th>💼 Job</th>
+                        <th>🎪 Characters</th>
+                        <th>🔍 Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for principal in principals %}
-                        <tr>
-                                <td>{{ principal.principal_id }}</td>
-                                <td>{{ principal.tconst }}</td>
-                                <td>{{ principal.nconst }}</td>
-                                <td>{{ principal.category }}</td>
-                                <td>{{ principal.job if principal.job else '-' }}</td>
-                                <td>
-                                        <a href="{{ url_for('principal_page', principal_id=principal.principal_id) }}">
-                                                View Details
-                                        </a>
-                                </td>
-                        </tr>
+                    <tr>
+                        <td>
+                            <span class="person-name">
+                                {{ principal.person_name if principal.person_name else principal.nconst }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('title_page', title_id=principal.tconst) }}" class="title-name">
+                                {{ principal.title_name if principal.title_name else principal.tconst }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="category-badge category-{{ principal.category }}">
+                                {{ principal.category }}
+                            </span>
+                        </td>
+                        <td>{{ principal.job if principal.job else '-' }}</td>
+                        <td>
+                            <span class="character-names">
+                                {% if principal.characters %}
+                                    {{ principal.characters[:50] }}{% if principal.characters|length > 50 %}...{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('principal_page', principal_id=principal.principal_id) }}" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
                 {% endfor %}
                 </tbody>
-        </table>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h2>No Principals Found</h2>
+            <p>Start by adding some cast and crew members!</p>
         </div>
         {% endif %}
+    </div>
 {% endblock %}

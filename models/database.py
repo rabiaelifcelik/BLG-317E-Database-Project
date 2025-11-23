@@ -61,13 +61,49 @@ class Database:
     
     def get_principals(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM principals LIMIT 200;")
+            query = """
+                SELECT 
+                    p.principal_id,
+                    p.tconst,
+                    t.primaryTitle as title_name,
+                    p.ordering,
+                    p.nconst,
+                    pe.primaryName as person_name,
+                    p.category,
+                    p.job,
+                    p.characters
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                ORDER BY p.principal_id DESC
+                LIMIT 200
+            """
+            cursor.execute(query)
             principals = cursor.fetchall()
         return principals
     
     def get_principal(self, principal_id):
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM principals WHERE principal_id = '{principal_id}';")
+            query = """
+                SELECT 
+                    p.principal_id,
+                    p.tconst,
+                    t.primaryTitle as title_name,
+                    t.startYear as title_year,
+                    p.ordering,
+                    p.nconst,
+                    pe.primaryName as person_name,
+                    pe.birthYear as person_birth_year,
+                    pe.primaryProfession as person_profession,
+                    p.category,
+                    p.job,
+                    p.characters
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                WHERE p.principal_id = %s
+            """
+            cursor.execute(query, (principal_id,))
             principal = cursor.fetchone()
         
         if principal is not None:
