@@ -81,3 +81,17 @@ class Database:
         else:
             print("Person not found in database.")
             return None
+
+    def get_akas(self, title_id):
+        with connection.cursor() as cursor:
+            query = f"SELECT title, region, language, types FROM akas WHERE title_id = '{title_id}';"
+            cursor.execute(query)
+            akas_data = cursor.fetchall()
+        return akas_data
+
+    def get_ratings(self, title_id):
+        with connection.cursor() as cursor:
+            query = f"SELECT averageRating, numVotes FROM ratings WHERE tconst = '{title_id}';"
+            cursor.execute(query)
+            rating_data = cursor.fetchone()
+        return rating_data
