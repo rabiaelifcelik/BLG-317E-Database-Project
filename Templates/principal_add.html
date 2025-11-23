@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block title %}Add Principal{% endblock %}
+{% block content %}
+    <h1 class="title">Add New Principal</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('principals_page') }}" style="background-color: #008CBA; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Back to Principals List
+        </a>
+    </div>
+
+    <form action="{{ url_for('principal_add_page') }}" method="post">
+        <table class="movie-table">
+            <tr>
+                <th><label for="title_id">Title ID:</label></th>
+                <td>
+                    <input type="text" id="title_id" name="title_id" required 
+                           placeholder="e.g., tt0000001"
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="ordering">Ordering:</label></th>
+                <td>
+                    <input type="number" id="ordering" name="ordering" required 
+                           placeholder="e.g., 1"
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="name_id">Name ID:</label></th>
+                <td>
+                    <input type="text" id="name_id" name="name_id" required 
+                           placeholder="e.g., nm0000001"
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="category">Category:</label></th>
+                <td>
+                    <select id="category" name="category" required
+                            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select Category</option>
+                        <option value="actor">Actor</option>
+                        <option value="actress">Actress</option>
+                        <option value="director">Director</option>
+                        <option value="writer">Writer</option>
+                        <option value="producer">Producer</option>
+                        <option value="composer">Composer</option>
+                        <option value="cinematographer">Cinematographer</option>
+                        <option value="editor">Editor</option>
+                        <option value="self">Self</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="job">Job:</label></th>
+                <td>
+                    <input type="text" id="job" name="job" 
+                           placeholder="e.g., Executive Producer (optional)"
+                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </td>
+            </tr>
+            <tr>
+                <th><label for="characters">Characters:</label></th>
+                <td>
+                    <textarea id="characters" name="characters" rows="3"
+                              placeholder="e.g., [&quot;Character Name&quot;] (optional)"
+                              style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center; padding-top: 20px;">
+                    <button type="submit" 
+                            style="background-color: #4CAF50; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Add Principal
+                    </button>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+{% endblock %}

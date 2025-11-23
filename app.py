@@ -12,10 +12,17 @@ app = Flask(__name__)
 
 
 if __name__ == '__main__':
+    # Initialize database
+    db = Database()
+    app.config["db"] = db
+    
     # Add app url rules
     app.add_url_rule("/", view_func=views.home_page)
     app.add_url_rule("/titles", view_func=views.titles_page)
     app.add_url_rule("/titles/<title_id>", view_func=views.title_page)
     app.add_url_rule("/cast", view_func=views.cast_page)
+    app.add_url_rule("/principals", view_func=views.principals_page)
+    app.add_url_rule("/principals/add", view_func=views.principal_add_page, methods=["GET", "POST"])
+    app.add_url_rule("/principals/<principal_id>", view_func=views.principal_page)
 
     app.run(debug=True, port=5000)

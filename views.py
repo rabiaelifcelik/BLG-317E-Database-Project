@@ -41,3 +41,31 @@ def title_page(title_id):
 
 def cast_page():
     return render_template('cast.html')
+
+def principals_page():
+    db = current_app.config["db"]
+    principals = db.get_principals()
+    return render_template('principals.html', principals=principals)
+
+def principal_page(principal_id):
+    db = current_app.config["db"]
+    principal = db.get_principal(principal_id)
+    if principal == None:
+        abort(404)
+    return render_template("principal.html", principal=principal)
+
+def principal_add_page():
+    if request.method == "GET":
+        return render_template('principal_add.html')
+    else:
+        form_title_id = request.form["title_id"]
+        form_ordering = request.form["ordering"]
+        form_name_id = request.form["name_id"]
+        form_category = request.form["category"]
+        form_job = request.form.get("job", "")
+        form_characters = request.form.get("characters", "")
+        
+        db = current_app.config["db"]
+        db.add_principal(form_title_id, int(form_ordering), form_name_id, form_category, form_job, form_characters)
+        
+        return redirect(url_for('principals_page'))

@@ -58,3 +58,30 @@ class Database:
 
         
         return crew
+    
+    def get_principals(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM principals LIMIT 200;")
+            principals = cursor.fetchall()
+        return principals
+    
+    def get_principal(self, principal_id):
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM principals WHERE principal_id = '{principal_id}';")
+            principal = cursor.fetchone()
+        
+        if principal is not None:
+            return principal
+        else:
+            print("Principal not found in database.")
+            return None
+    
+    def add_principal(self, title_id, ordering, name_id, category, job, characters):
+        with connection.cursor() as cursor:
+            query = """
+                INSERT INTO principals (tconst, ordering, nconst, category, job, characters) 
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (title_id, ordering, name_id, category, job, characters))
+            connection.commit()
+        return True

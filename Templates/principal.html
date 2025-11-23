@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}Principal Details{% endblock %}
+{% block content %}
+    <h1 class="title">Principal Details</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('principals_page') }}" style="background-color: #008CBA; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Back to Principals List
+        </a>
+    </div>
+
+    <table class="movie-table">
+      <tr>
+        <th>Principal ID:</th>
+        <td>{{ principal.principal_id }}</td>
+      </tr>
+      <tr>
+        <th>Title ID:</th>
+        <td>
+            <a href="{{ url_for('title_page', title_id=principal.tconst) }}">
+                {{ principal.tconst }}
+            </a>
+        </td>
+      </tr>
+      <tr>
+        <th>Ordering:</th>
+        <td>{{ principal.ordering }}</td>
+      </tr>
+      <tr>
+        <th>Name ID:</th>
+        <td>{{ principal.nconst }}</td>
+      </tr>
+      <tr>
+        <th>Category:</th>
+        <td>{{ principal.category }}</td>
+      </tr>
+      {% if principal.job %}
+      <tr>
+        <th>Job:</th>
+        <td>{{ principal.job }}</td>
+      </tr>
+      {% endif %}
+      {% if principal.characters %}
+      <tr>
+        <th>Characters:</th>
+        <td>{{ principal.characters }}</td>
+      </tr>
+      {% endif %}
+    </table>
+
+{% endblock %}
