@@ -1,60 +1,110 @@
-h1 {
-    color: rgb(255, 129, 213);
+html, body {
+    height: 100%;
+    margin: 0;
 }
 
 body {
-    background-color:rgb(33, 46, 95);    
-    color:white;
+    background-color: rgb(33, 46, 95);    
+    color: white;
+    display: flex;
+    flex-direction: column;
 }
 
-.main-content {
-    margin:20px;
-    height:200px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 2px;
-    border-radius: 6px;
-}
-
-a {
-    padding: 5px;
-    border-radius: 5px;
-    color:rgb(253, 255, 254);
-    text-decoration: none;
-    box-shadow: inset;
-}
-
+/* Existing header and nav */
 nav {
+    position: sticky;
+    top: 0;
     height: 40px;
     align-content: center;
     margin: 0px;
     font-family: Helvetica, sans-serif;
 }
 
-.header-div{
-    margin:10px;
-    margin-left: 25px;
-    margin-right:40px;
-    font-family:'Times New Roman', Times, serif;
-    font-size: 30px;
-    font-style:oblique;
-    font-weight: 800;
-    color:#ddff44;
-    text-shadow: 1px 1px 4px #ffc0cb;
-}
-
 header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     margin: 0px;
-    align-content: center;
-    align-self: center;
-    align-items: center;
     display: flex;
-    justify-content:left;
-    
+    align-items: center;
+    justify-content: flex-start;
+    background-color: rgb(33, 46, 95);
 }
 
+/* Sticky header inside main-content */
+.header-div {
+    position: sticky;
+    top: 0;                        /* sticks to top of main-content */
+    z-index: 5;                     /* above scrollable content */
+    margin: 10px 40px 5px 25px;   /* top/right/bottom/left */
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 30px;
+    font-style: oblique;
+    font-weight: 800;
+    color: #ddff44;
+    text-shadow: 1px 1px 4px #ffc0cb;
+
+}
+
+/* Main content */
+.main-content {
+    margin: 20px;
+    margin-top: 10px;
+    border-radius: 6px;
+    flex: 1 1 auto;                /* allow to grow/shrink */
+    display: flex;
+    flex-direction: column;
+    
+    overflow-y: auto;              /* scrollable */
+}
+
+/* Scrollable area below sticky header */
+.scrollable-content {
+    flex: 1 1 auto;                /* fill remaining space */
+    padding: 10px;                 /* padding stays inside scroll */
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color:rgb(129, 137, 255);
+    /* Optional styled scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #888 #cfe655;
+}
+
+.scrollable-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-content::-webkit-scrollbar-track {
+    background: #cfe655;
+    border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.scrollable-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Footer */
 footer {
     align-content: center;
     text-align: center;
     color: rgb(129, 137, 255);
+}
+
+/* Links */
+a {
+    padding: 5px;
+    border-radius: 5px;
+    color: rgb(253, 255, 254);
+    text-decoration: none;
+}
+
+h1 { color: rgb(255, 129, 213); }
+
+.movie-table{
+    text-align: left;
 }

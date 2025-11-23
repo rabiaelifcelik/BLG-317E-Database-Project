@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}About Content{% endblock %}
+{% block content %}
+    <h1 class="title">About Content</h1>
+
+    <form action="" method="post" name="title_edit">
+    <table class="movie-table">
+      <tr>
+        <th>Title:</th>
+        <td>{{ title.primaryTitle }}</td>
+        <input hidden="true" value="{{title.primaryTitle}}"/>
+      </tr>
+      <tr>
+        <th>Genre:</th>
+        <td>{{ title.genres }}</td>
+        <input hidden="true" value="{{title.genres}}"/>
+      </tr>
+      <tr>
+        <th>Start Year:</th>
+        <td>{{ title.startYear }}</td>
+        <input hidden="true" value="{{title.startYear}}"/>
+      </tr>
+      {% if title.endYear %}
+      <tr>
+        <th>End Year:</th>
+        <td>{{ title.endYear }}</td>
+        <input hidden="true" value="{{title.endYear}}"/>
+      </tr>
+      {% endif %}
+      <tr>
+        <th>Suitable for Children:</th>
+        <td>{% if title.isAdult %}
+           No
+           {% else %}
+           Yes
+           {%endif%}
+        </td>
+        <input hidden="true" value="{{title.isAdult}}"/>
+      </tr>
+      <tr>
+        <th>Crew:</th>
+        <table>
+          <tr>
+            <th>Directors:</th>
+            <td>{{crew.directors}}</td>
+          </tr>
+          {% if crew.writers%}
+          <tr>
+            <th>Writers: </th>
+            <td>{{crew.writers}}</td>
+          </tr>
+          {%endif %}
+        </table>
+        <input hidden="true" value="{{title.isAdult}}"/>
+      </tr>
+    </table>
+      <button>Edit</button>
+    </form>
+{% endblock %}

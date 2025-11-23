@@ -15,6 +15,7 @@ if __name__ == '__main__':
     # Add app url rules
     app.add_url_rule("/", view_func=views.home_page)
     app.add_url_rule("/titles", view_func=views.titles_page)
+    app.add_url_rule("/titles/<title_id>", view_func=views.title_page)
     app.add_url_rule("/cast", view_func=views.cast_page)
 
     app.run(debug=True, port=5000)

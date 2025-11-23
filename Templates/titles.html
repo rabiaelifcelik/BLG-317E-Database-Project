@@ -4,10 +4,12 @@
         <h1 class="title">Titles</h1>
 
         {% if titles %}
-        
+        <div class="scrollable-content">
         {% for title in titles %}
-                <b>{{ title.primaryTitle }}</b>, {{title.startYear}}, {{title.genres}}<br/>
+                <a href="{{ url_for('title_page', title_id=title.tconst) }}">
+                        <b>{{ title.primaryTitle }}</b><br>
+                </a>
         {% endfor %}
-    
+        </div>
         {% endif %}
 {% endblock %}
