@@ -9,6 +9,8 @@ from models.titles import Titles
 
 app = Flask(__name__)
 
+# Initialize database
+app.config["db"] = Database()
 
 
 if __name__ == '__main__':
@@ -24,5 +26,14 @@ if __name__ == '__main__':
     app.add_url_rule("/principals", view_func=views.principals_page)
     app.add_url_rule("/principals/add", view_func=views.principal_add_page, methods=["GET", "POST"])
     app.add_url_rule("/principals/<principal_id>", view_func=views.principal_page)
+    
+    # People pages (Your section)
+    app.add_url_rule("/people", view_func=views.people_page)
+    app.add_url_rule("/people/<person_id>", view_func=views.person_page)
+
+    # akas table
+
+    app.add_url_rule("/akas", view_func=views.akas_page)
+    app.add_url_rule("/akas/<title_id>", view_func=views.akas_page)
 
     app.run(debug=True, port=5000)

@@ -85,3 +85,39 @@ class Database:
             cursor.execute(query, (title_id, ordering, name_id, category, job, characters))
             connection.commit()
         return True
+
+    def get_people(self):
+        """Get all people from database"""
+        with connection.cursor() as cursor:
+            # Fetch people with their basic info
+            cursor.execute("SELECT nconst, primaryName, birthYear, deathYear, primaryProfession FROM people LIMIT 200;")
+            people = cursor.fetchall()
+        
+        return people
+    
+
+    def get_person(self, person_id):
+        """Get a specific person by ID"""
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM people WHERE nconst = '{person_id}';")
+            person = cursor.fetchone()
+        
+        if person is not None:
+            return person
+        else:
+            print("Person not found in database.")
+            return None
+
+    def get_akas(self, title_id):
+        with connection.cursor() as cursor:
+            query = f"SELECT title, region, language, types FROM akas WHERE title_id = '{title_id}';"
+            cursor.execute(query)
+            akas_data = cursor.fetchall()
+        return akas_data
+
+    def get_ratings(self, title_id):
+        with connection.cursor() as cursor:
+            query = f"SELECT averageRating, numVotes FROM ratings WHERE tconst = '{title_id}';"
+            cursor.execute(query)
+            rating_data = cursor.fetchone()
+        return rating_data

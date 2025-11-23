@@ -69,3 +69,40 @@ def principal_add_page():
         db.add_principal(form_title_id, int(form_ordering), form_name_id, form_category, form_job, form_characters)
         
         return redirect(url_for('principals_page'))
+
+# People pages - Your section
+def people_page():
+    """Your people list page"""
+    db = current_app.config["db"]
+    people = db.get_people()
+    return render_template('people.html', people=people)
+
+
+def person_page(person_id):
+    """Your person detail page"""
+    if request.method == "GET":
+        db = current_app.config["db"]
+        person = db.get_person(person_id)
+        
+        if person == None:
+            abort(404)
+    
+        return render_template("person.html", person=person)
+
+
+# AKAS pages
+def akas_page():
+    db = current_app.config["db"]
+    people = db.get_akas()
+    return render_template('akas.html', akas=akas)
+
+
+def title_page(title_id):
+    if request.method == "GET":
+        db = current_app.config["db"]
+        person = db.get_title(title_id)
+        
+        if title == None:
+            abort(404)
+    
+        return render_template("title.html", title=title)

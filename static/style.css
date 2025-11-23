@@ -108,3 +108,283 @@ h1 { color: rgb(255, 129, 213); }
 .movie-table{
     text-align: left;
 }
+
+/* ==================== PEOPLE MODULE STYLES ==================== */
+
+/* People List Page Styles */
+.people-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.people-container .subtitle {
+    color: #ccc;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.stats-bar {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.person-card {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    background: rgba(129, 137, 255, 0.3);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.person-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.person-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.person-header h3 {
+    margin: 0;
+    color: #ddff44;
+    font-size: 1.3em;
+    font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+.person-id {
+    font-size: 0.8em;
+    color: #aaa;
+    font-family: monospace;
+}
+
+.person-info {
+    margin: 15px 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .label {
+    font-weight: 500;
+    color: #ddd;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.92em;
+    letter-spacing: 0.2px;
+}
+
+.info-row .value {
+    color: white;
+}
+
+.profession-tag {
+    background: rgba(231, 243, 255, 0.2);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    color: #ddff44;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+.person-actions {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.btn-view:hover {
+    background: #0056b3;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+}
+
+.empty-state p:first-child {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+/* Person Detail Page Styles */
+.person-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.back-nav {
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.btn-back:hover {
+    background: #5a6268;
+}
+
+.person-header-section {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.person-avatar {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3em;
+}
+
+.person-title h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.3em;
+    color: white;
+    font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+.person-id-badge {
+    background: rgba(255,255,255,0.3);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-family: monospace;
+}
+
+.person-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.info-card {
+    background: rgba(129, 137, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.info-card h2 {
+    margin-top: 0;
+    color: #ddff44;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+}
+
+.info-list {
+    margin-top: 20px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #ddd;
+}
+
+.info-value {
+    color: white;
+    text-align: right;
+}
+
+.status-alive {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.profession-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.profession-badge {
+    background: rgba(231, 243, 255, 0.2);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    color: #ddff44;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .person-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .person-header-section {
+        flex-direction: column;
+        text-align: center;
+    }
+}

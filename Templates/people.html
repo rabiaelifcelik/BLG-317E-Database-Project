@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}People{% endblock %}
+
+{% block content %}
+    <div class="people-container">
+        <h1>🎬 People Database</h1>
+        <p class="subtitle">Explore actors, directors, and industry professionals</p>
+
+        <div class="stats-bar">
+            <span>Total People: <strong>{{ people|length }}</strong></span>
+        </div>
+
+        <div class="people-grid">
+            {% for person in people %}
+            <div class="person-card">
+                <div class="person-header">
+                    <h3>{{ person.primaryName }}</h3>
+                    <span class="person-id">{{ person.nconst }}</span>
+                </div>
+                
+                <div class="person-info">
+                    <div class="info-row">
+                        <span class="label">📅 Birth Year:</span>
+                        <span class="value">{{ person.birthYear if person.birthYear else 'Unknown' }}</span>
+                    </div>
+                    
+                    {% if person.deathYear %}
+                    <div class="info-row">
+                        <span class="label">⚰️ Death Year:</span>
+                        <span class="value">{{ person.deathYear }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-row">
+                        <span class="label">💼 Profession:</span>
+                        <span class="value profession-tag">
+                            {{ person.primaryProfession if person.primaryProfession else 'N/A' }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="person-actions">
+                    <a href="{{ url_for('person_page', person_id=person.nconst) }}" class="btn-view">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if people|length == 0 %}
+        <div class="empty-state">
+            <p>📭 No people found in the database.</p>
+            <p><small>Add some people to get started!</small></p>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
