@@ -97,12 +97,3 @@ def akas_page():
     return render_template('akas.html', akas=akas)
 
 
-def title_page(title_id):
-    if request.method == "GET":
-        db = current_app.config["db"]
-        person = db.get_title(title_id)
-        
-        if title == None:
-            abort(404)
-    
-        return render_template("title.html", title=title)
