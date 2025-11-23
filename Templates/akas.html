@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Akas{% endblock %}
+{% block content %}
+    
+    <h1 class="title">Akas{{ title.primaryTitle }}</h1>
+    
+    <p><a href="{{ url_for('title_page', title_id=title.tconst) }}">← Back to Title Details</a></p>
+
+    <h2>Alternate Titles List</h2>
+    {% if akas %}
+    <table class="movie-table">
+        <tr>
+            <th>Title</th>
+            <th>Region</th>
+            <th>Language</th>
+            <th>Is Original Title</th>
+        </tr>
+        {% for aka in akas %}
+        <tr>
+            <td>{{ aka.title }}</td>
+            <td>{{ aka.region }}</td>
+            <td>{{ aka.language }}</td>
+            <td>{% if aka.is_original_title %}Yes{% else %}No{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p>No alternate titles found for this title.</p>
+    {% endif %}
+
+{% endblock %}
