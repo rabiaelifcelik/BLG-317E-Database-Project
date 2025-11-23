@@ -58,3 +58,26 @@ class Database:
 
         
         return crew
+    
+
+    def get_people(self):
+        """Get all people from database"""
+        with connection.cursor() as cursor:
+            # Fetch people with their basic info
+            cursor.execute("SELECT nconst, primaryName, birthYear, deathYear, primaryProfession FROM people LIMIT 200;")
+            people = cursor.fetchall()
+        
+        return people
+    
+
+    def get_person(self, person_id):
+        """Get a specific person by ID"""
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM people WHERE nconst = '{person_id}';")
+            person = cursor.fetchone()
+        
+        if person is not None:
+            return person
+        else:
+            print("Person not found in database.")
+            return None

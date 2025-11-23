@@ -41,3 +41,23 @@ def title_page(title_id):
 
 def cast_page():
     return render_template('cast.html')
+
+
+# People pages - Your section
+def people_page():
+    """Your people list page"""
+    db = current_app.config["db"]
+    people = db.get_people()
+    return render_template('people.html', people=people)
+
+
+def person_page(person_id):
+    """Your person detail page"""
+    if request.method == "GET":
+        db = current_app.config["db"]
+        person = db.get_person(person_id)
+        
+        if person == None:
+            abort(404)
+    
+        return render_template("person.html", person=person)

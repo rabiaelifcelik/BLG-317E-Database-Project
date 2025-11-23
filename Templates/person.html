@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}{{ person.primaryName }}{% endblock %}
+
+{% block content %}
+    <div class="person-detail-container">
+        <div class="back-nav">
+            <a href="{{ url_for('people_page') }}" class="btn-back">← Back to People</a>
+        </div>
+
+        <div class="person-header-section">
+            <div class="person-avatar">
+                <span class="avatar-icon">👤</span>
+            </div>
+            <div class="person-title">
+                <h1>{{ person.primaryName }}</h1>
+                <span class="person-id-badge">ID: {{ person.nconst }}</span>
+            </div>
+        </div>
+
+        <div class="person-info-grid">
+            <div class="info-card">
+                <h2>📋 Personal Information</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Birth Year:</span>
+                        <span class="info-value">{{ person.birthYear if person.birthYear else 'Unknown' }}</span>
+                    </div>
+                    
+                    {% if person.deathYear %}
+                    <div class="info-item">
+                        <span class="info-label">Death Year:</span>
+                        <span class="info-value">{{ person.deathYear }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Age at Death:</span>
+                        <span class="info-value">{{ person.deathYear - person.birthYear }} years</span>
+                    </div>
+                    {% else %}
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value status-alive">✓ Living</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2>💼 Professional Information</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Primary Profession:</span>
+                        <span class="info-value profession-badges">
+                            {% if person.primaryProfession %}
+                                {% for profession in person.primaryProfession.split(',') %}
+                                    <span class="profession-badge">{{ profession.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if person.knownForTitles %}
+                    <div class="info-item">
+                        <span class="info-label">Known For Titles:</span>
+                        <span class="info-value">
+                            {{ person.knownForTitles }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
