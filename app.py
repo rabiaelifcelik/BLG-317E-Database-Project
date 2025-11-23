@@ -24,4 +24,9 @@ if __name__ == '__main__':
     app.add_url_rule("/people", view_func=views.people_page)
     app.add_url_rule("/people/<person_id>", view_func=views.person_page)
 
+    # akas table
+
+    app.add_url_rule("/akas", view_func=viewa.akas_page)
+    app.add_url_rule("/akas/<title_id>", view_func=views.akas_page)
+
     app.run(debug=True, port=5000)
