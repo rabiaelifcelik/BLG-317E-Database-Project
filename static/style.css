@@ -1,115 +1,386 @@
+/* ==================== GLOBAL STYLES ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 html, body {
     height: 100%;
     margin: 0;
+    font-family: 'Montserrat', sans-serif;
 }
 
 body {
-    background-color: rgb(33, 46, 95);    
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     color: white;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
-/* Existing header and nav */
-nav {
+/* ==================== NAVBAR STYLES ==================== */
+.navbar {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     position: sticky;
     top: 0;
-    height: 40px;
-    align-content: center;
-    margin: 0px;
-    font-family: Helvetica, sans-serif;
+    z-index: 1000;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    margin: 0px;
+.navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 70px;
+}
+
+.navbar-brand {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    background-color: rgb(33, 46, 95);
-}
-
-/* Sticky header inside main-content */
-.header-div {
-    position: sticky;
-    top: 0;                        /* sticks to top of main-content */
-    z-index: 5;                     /* above scrollable content */
-    margin: 10px 40px 5px 25px;   /* top/right/bottom/left */
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 30px;
-    font-style: oblique;
+    gap: 12px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 28px;
     font-weight: 800;
-    color: #ddff44;
-    text-shadow: 1px 1px 4px #ffc0cb;
-
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
 }
 
-/* Main content */
-.main-content {
-    margin: 20px;
-    margin-top: 10px;
-    border-radius: 6px;
-    flex: 1 1 auto;                /* allow to grow/shrink */
+.navbar-brand i {
+    font-size: 32px;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.navbar-brand:hover {
+    transform: translateY(-2px);
+    color: #ffd700;
+}
+
+.navbar-menu {
     display: flex;
-    flex-direction: column;
-    
-    overflow-y: auto;              /* scrollable */
+    gap: 5px;
+    align-items: center;
 }
 
-/* Scrollable area below sticky header */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    font-size: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link i {
+    font-size: 16px;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #ffd700;
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+
+/* ==================== MAIN CONTENT ==================== */
+.main-content {
+    flex: 1;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* ==================== HOME PAGE CARDS ==================== */
+.home-hero {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.home-hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #ffd700, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.home-hero p {
+    font-size: 20px;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+.home-subtitle {
+    font-size: 16px;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 35px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 157, 0.1));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.card-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    display: block;
+    background: linear-gradient(45deg, #ffd700, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.feature-card h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.feature-card p {
+    font-size: 15px;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.card-stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.stat-item i {
+    color: #ffd700;
+}
+
+.card-arrow {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 24px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(5px);
+}
+
+
+/* ==================== SCROLLABLE CONTENT ==================== */
 .scrollable-content {
-    flex: 1 1 auto;                /* fill remaining space */
-    padding: 10px;                 /* padding stays inside scroll */
-    border-radius: 6px;
+    flex: 1 1 auto;
+    padding: 25px;
+    border-radius: 15px;
     box-sizing: border-box;
-    background-color:rgb(129, 137, 255);
-    /* Optional styled scrollbar */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     scrollbar-width: thin;
-    scrollbar-color: #888 #cfe655;
+    scrollbar-color: #ffd700 rgba(255, 255, 255, 0.2);
 }
 
 .scrollable-content::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .scrollable-content::-webkit-scrollbar-track {
-    background: #cfe655;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }
 
 .scrollable-content::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+    background: #ffd700;
+    border-radius: 10px;
 }
 
 .scrollable-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #ff6b9d;
 }
 
-/* Footer */
-footer {
-    align-content: center;
-    text-align: center;
-    color: rgb(129, 137, 255);
-}
-
-/* Links */
-a {
-    padding: 5px;
-    border-radius: 5px;
-    color: rgb(253, 255, 254);
-    text-decoration: none;
-}
-
-h1 { color: rgb(255, 129, 213); }
-
-.movie-table{
+.movie-table {
     text-align: left;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.movie-table th,
+.movie-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.movie-table th {
+    background: rgba(255, 215, 0, 0.2);
+    font-weight: 600;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+    .navbar-container {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+    }
+    
+    .navbar-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .nav-link {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .home-hero h1 {
+        font-size: 32px;
+    }
+    
+    .home-hero p {
+        font-size: 16px;
+    }
+    
+    .cards-container {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ==================== PEOPLE MODULE STYLES ==================== */
+
+
+/* ==================== FOOTER ==================== */
+footer {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 25px 20px;
+    margin-top: 50px;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.footer-content p {
+    margin: 5px 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.footer-content i {
+    color: #ffd700;
+    margin-right: 5px;
+}
+
+/* ==================== GENERAL ELEMENTS ==================== */
+h1 { 
+    color: #ffd700;
+    font-weight: 700;
+}
+
+a {
+    color: #ffd700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #ff6b9d;
+}
+
+/* ==================== SCROLLABLE CONTENT ==================== */
 
 /* People List Page Styles */
 .people-container {
