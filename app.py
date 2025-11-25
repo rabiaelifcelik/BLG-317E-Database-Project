@@ -33,7 +33,9 @@ if __name__ == '__main__':
 
     # akas table
 
-    app.add_url_rule("/akas", view_func=views.akas_page)
-    app.add_url_rule("/akas/<title_id>", view_func=views.akas_page)
+    
+    app.add_url_rule("/akaslist", view_func=views.akas_list_page)                     # <--- NEW AKAS LIST PAGE
+    app.add_url_rule("/akaslist/<title_id>/<ordering>", view_func=views.akas_details_page) # <--- NEW AKAS DETAIL PAGE
+    # ... rest of your routes ...
 
     app.run(debug=True, port=5000)

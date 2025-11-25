@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}AKA: {{ aka.title }}{% endblock %}
+
+{% block content %}
+    <div class="aka-detail-container">
+        <div class="aka-info-grid">
+            
+            <div class="info-card">
+                <h2>🌍 Regional Information</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Title ID:</span>
+                        <span class="info-value">
+                            <a href="{{ url_for('title_page', title_id=aka.title_id) }}">
+                                {{ aka.title_id }}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Title Ordering ID:</span>
+                        <span class="info-value">{{ aka.movie_id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Region Code:</span>
+                        <span class="info-value">{{ aka.region if aka.region else 'Global (N/A)' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Language Code:</span>
+                        <span class="info-value">{{ aka.language if aka.language else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2>📑 Classification & Attributes</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Is Original Title:</span>
+                        <span class="info-value status-alive">{{ 'Yes' if aka.is_original_title else 'No' }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Attributes (e.g., DVD, TV):</span>
+                        <span class="info-value profession-badges">
+                             {% if aka.attributes %}
+                                 {% for attr in aka.attributes.split(',') %}
+                                     <span class="profession-badge">{{ attr.strip() }}</span>
+                                 {% endfor %}
+                             {% else %}
+                                 N/A
+                             {% endif %}
+                        </span>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

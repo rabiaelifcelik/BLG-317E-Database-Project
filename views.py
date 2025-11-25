@@ -90,19 +90,33 @@ def person_page(person_id):
         return render_template("person.html", person=person)
 
 
-# AKAS pages
-def akas_page():
+def akas_list_page():
     db = current_app.config["db"]
-    people = db.get_akas()
-    return render_template('akas.html', akas=akas)
-
-
-def title_page(title_id):
-    if request.method == "GET":
-        db = current_app.config["db"]
-        person = db.get_title(title_id)
-        
-        if title == None:
-            abort(404)
+    akas = db.get_akas_list() # Use the new list method
     
-        return render_template("title.html", title=title)
+    return render_template(
+        "akas_list.html",
+        akas=akas
+    )
+
+# NEW VIEW FUNCTION: akas_details_page (For the details of a single alternate title)
+def akas_details_page(title_id, ordering):
+    db = current_app.config["db"]
+    
+    # Note: 'ordering' must be converted to an integer if it came from the URL as a string
+    try:
+        ordering = int(ordering)
+    except ValueError:
+        abort(400) # Bad Request if ordering is not a number
+
+    # Fetch the single AKA record
+    aka = db.get_single_aka(title_id, ordering) 
+
+    if aka is None:
+        abort(404) # Not Found
+
+    return render_template(
+        "akas_details.html",
+        aka=aka
+    )
+

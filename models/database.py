@@ -61,13 +61,49 @@ class Database:
     
     def get_principals(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM principals LIMIT 200;")
+            query = """
+                SELECT 
+                    p.principal_id,
+                    p.tconst,
+                    t.primaryTitle as title_name,
+                    p.ordering,
+                    p.nconst,
+                    pe.primaryName as person_name,
+                    p.category,
+                    p.job,
+                    p.characters
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                ORDER BY p.principal_id DESC
+                LIMIT 200
+            """
+            cursor.execute(query)
             principals = cursor.fetchall()
         return principals
     
     def get_principal(self, principal_id):
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM principals WHERE principal_id = '{principal_id}';")
+            query = """
+                SELECT 
+                    p.principal_id,
+                    p.tconst,
+                    t.primaryTitle as title_name,
+                    t.startYear as title_year,
+                    p.ordering,
+                    p.nconst,
+                    pe.primaryName as person_name,
+                    pe.birthYear as person_birth_year,
+                    pe.primaryProfession as person_profession,
+                    p.category,
+                    p.job,
+                    p.characters
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                WHERE p.principal_id = %s
+            """
+            cursor.execute(query, (principal_id,))
             principal = cursor.fetchone()
         
         if principal is not None:
@@ -108,16 +144,32 @@ class Database:
             print("Person not found in database.")
             return None
 
-    def get_akas(self, title_id):
-        with connection.cursor() as cursor:
-            query = f"SELECT title, region, language, types FROM akas WHERE title_id = '{title_id}';"
-            cursor.execute(query)
-            akas_data = cursor.fetchall()
-        return akas_data
 
-    def get_ratings(self, title_id):
+
+# --- Add this method to the Database class in models/database.py ---
+
+    def get_akas_list(self):
+        """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
-            query = f"SELECT averageRating, numVotes FROM ratings WHERE tconst = '{title_id}';"
+            # Join with titles to show the primary title for context
+            query = """
+                SELECT a.titleId, a.ordering, a.title, a.region, t.primaryTitle 
+                FROM akas a
+                JOIN titles t ON a.titleId = t.tconst
+                LIMIT 200;
+            """
             cursor.execute(query)
-            rating_data = cursor.fetchone()
-        return rating_data
+            akas_list = cursor.fetchall()
+        return akas_list
+
+    def get_single_aka(self, title_id, ordering):
+        """Fetches a single, detailed AKA record."""
+        with connection.cursor() as cursor:
+            query = f"""
+                SELECT * FROM akas 
+                WHERE titleId = '{title_id}' AND ordering = {ordering};
+            """
+            cursor.execute(query)
+            aka = cursor.fetchone()
+        return aka
+

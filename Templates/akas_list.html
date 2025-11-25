@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}Alternate Titles List{% endblock %}
+
+{% block content %}
+    <div class="akas-container">
+        <h1>📑 Alternate Titles (Akas) Catalog</h1>
+        <p class="subtitle">Search localized and alternative titles</p>
+
+        <div class="stats-bar">
+            <span>Total Akas Displayed: <strong>{{ akas|length }}</strong></span>
+        </div>
+
+        <div class="akas-grid">
+            {% for aka in akas %}
+            <div class="aka-card">
+                <div class="aka-header">
+                    <h3>{{ aka.title }}</h3>
+                    <span class="aka-id">Title ID: {{ aka.titleId }}</span>
+                </div>
+                
+                <div class="aka-info">
+                    <div class="info-row">
+                        <span class="label">Primary Title:</span>
+                        <span class="value">{{ aka.primaryTitle }}</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="label">Region/Language:</span>
+                        <span class="value">{{ aka.region }} / {{ aka.language if aka.language else 'N/A' }}</span>
+                    </div>
+                </div>
+                
+                <div class="aka-actions">
+                    <a href="{{ url_for('akas_details_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-view">
+                        View Full Details →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if akas|length == 0 %}
+        <div class="empty-state">
+            <p>📭 No alternate titles found in the database.</p>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
