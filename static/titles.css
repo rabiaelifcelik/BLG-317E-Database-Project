@@ -24,3 +24,13 @@
 .movie-table tbody tr:hover {
     background: rgba(255, 255, 255, 0.1);
 }
+
+.name-hover {
+    color: #ffd700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.name-hover:hover {
+    color: #ff6b9d;
+}
