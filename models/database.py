@@ -144,16 +144,32 @@ class Database:
             print("Person not found in database.")
             return None
 
-    def get_akas(self, title_id):
-        with connection.cursor() as cursor:
-            query = f"SELECT title, region, language, types FROM akas WHERE title_id = '{title_id}';"
-            cursor.execute(query)
-            akas_data = cursor.fetchall()
-        return akas_data
 
-    def get_ratings(self, title_id):
+
+# --- Add this method to the Database class in models/database.py ---
+
+    def get_akas_list(self):
+        """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
-            query = f"SELECT averageRating, numVotes FROM ratings WHERE tconst = '{title_id}';"
+            # Join with titles to show the primary title for context
+            query = """
+                SELECT a.titleId, a.ordering, a.title, a.region, t.primaryTitle 
+                FROM akas a
+                JOIN titles t ON a.titleId = t.tconst
+                LIMIT 200;
+            """
             cursor.execute(query)
-            rating_data = cursor.fetchone()
-        return rating_data
+            akas_list = cursor.fetchall()
+        return akas_list
+
+    def get_single_aka(self, title_id, ordering):
+        """Fetches a single, detailed AKA record."""
+        with connection.cursor() as cursor:
+            query = f"""
+                SELECT * FROM akas 
+                WHERE titleId = '{title_id}' AND ordering = {ordering};
+            """
+            cursor.execute(query)
+            aka = cursor.fetchone()
+        return aka
+

@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Cast{% endblock %}
+
+{% block content %}
+    <div class="coming-soon-container">
+        <div class="coming-soon-content">
+            <i class="fas fa-users coming-soon-icon"></i>
+            <h1>Cast Page</h1>
+            <h2>Coming Soon</h2>
+            <p class="coming-soon-text">
+                We're working hard to bring you comprehensive cast information. 
+                This page will feature detailed actor profiles, character information, 
+                and complete cast listings for all titles.
+            </p>
+            
+            <div class="features-preview">
+                <div class="feature-item">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Actor Profiles</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-theater-masks"></i>
+                    <span>Character Details</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-list"></i>
+                    <span>Complete Cast Lists</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-search"></i>
+                    <span>Advanced Search</span>
+                </div>
+            </div>
+
+            <div class="alternative-links">
+                <p>In the meantime, explore our other sections:</p>
+                <div class="link-buttons">
+                    <a href="{{ url_for('people_page') }}" class="alt-link">
+                        <i class="fas fa-user"></i>
+                        View People
+                    </a>
+                    <a href="{{ url_for('principals_page') }}" class="alt-link">
+                        <i class="fas fa-star"></i>
+                        View Principals
+                    </a>
+                    <a href="{{ url_for('titles_page') }}" class="alt-link">
+                        <i class="fas fa-video"></i>
+                        View Titles
+                    </a>
+                </div>
+            </div>
+
+            <div class="progress-indicator">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                </div>
+                <p class="progress-text">Development Progress: 45%</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
