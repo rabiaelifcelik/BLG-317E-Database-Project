@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}{{ person.primaryName }}{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/people.css"/>
+{% endblock %}
 
 {% block content %}
     <div class="person-detail-container">

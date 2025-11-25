@@ -1,0 +1,123 @@
+/* ==================== AKAS PAGE STYLES ==================== */
+
+.akas-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.akas-container h1 {
+    text-align: center;
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.akas-container .subtitle {
+    text-align: center;
+    font-size: 18px;
+    opacity: 0.8;
+    margin-bottom: 30px;
+}
+
+.akas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.aka-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    transition: all 0.4s ease;
+}
+
+.aka-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.aka-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.aka-header h3 {
+    font-size: 20px;
+    color: #ffd700;
+    margin: 0;
+    flex: 1;
+}
+
+.aka-id {
+    font-size: 12px;
+    padding: 6px 12px;
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 20px;
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.aka-info .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.aka-info .info-row:last-child {
+    border-bottom: none;
+}
+
+.aka-info .label {
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.aka-info .value {
+    font-weight: 500;
+}
+
+.lang-tag {
+    background: rgba(102, 126, 234, 0.3);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.aka-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .akas-grid {
+        grid-template-columns: 1fr;
+    }
+}

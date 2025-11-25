@@ -1,0 +1,26 @@
+/* ==================== TITLES PAGE STYLES ==================== */
+
+.movie-table {
+    text-align: left;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.movie-table th,
+.movie-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.movie-table th {
+    background: rgba(255, 215, 0, 0.2);
+    font-weight: 600;
+}
+
+.movie-table tbody tr {
+    transition: background 0.3s ease;
+}
+
+.movie-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

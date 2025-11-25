@@ -1,185 +1,151 @@
-/* ================================================
-   PRINCIPALS SAYFASI - �ZEL ST�LLER
-   Cast & Crew Y�netim Sistemi i�in Modern Tasar�m
-   ================================================ */
+/* ==================== PRINCIPALS PAGE STYLES ==================== */
 
-/* Ana Container */
 .principals-container {
-    padding: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    min-height: 500px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-/* Ba�l�k Stilleri */
-.principals-title {
-    color: #ffffff;
-    font-size: 2.8em;
-    font-weight: 900;
-    text-align: center;
-    margin-bottom: 35px;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
-    font-family: 'Segoe UI', 'Arial', sans-serif;
-    letter-spacing: 1px;
-}
-
-/* ================================================
-   BUTON ST�LLER�
-   ================================================ */
-
-.btn-primary {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 14px 35px;
-    text-decoration: none;
-    border-radius: 30px;
-    border: none;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    box-shadow: 0 5px 20px rgba(76, 175, 80, 0.5);
-    display: inline-block;
-    margin-bottom: 25px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.7);
-    background: linear-gradient(135deg, #45a049, #4CAF50);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #2196F3, #1976D2);
-    color: white;
-    padding: 10px 26px;
-    text-decoration: none;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.5);
-    display: inline-block;
-    margin-bottom: 15px;
-}
-
-.btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 22px rgba(33, 150, 243, 0.7);
-    background: linear-gradient(135deg, #1976D2, #2196F3);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #f44336, #d32f2f);
-    color: white;
-    padding: 8px 22px;
-    text-decoration: none;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #ffd700;
+}
+
+.page-header h1 i {
+    color: #ffd700;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    opacity: 0.8;
+    margin-top: 5px;
+    color: white;
+}
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
-.btn-danger:hover {
+.btn-add:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.7);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+    color: white;
 }
 
-/* ================================================
-   TABLO ST�LLER�
-   ================================================ */
-
+/* Table Styles */
 .principals-table {
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.98);
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-    border-collapse: collapse;
 }
 
 .principals-table thead {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: rgba(255, 215, 0, 0.2);
+    backdrop-filter: blur(10px);
 }
 
-.principals-table thead th {
-    padding: 20px 15px;
+.principals-table th {
+    padding: 18px 15px;
     text-align: left;
-    font-weight: bold;
+    font-weight: 600;
     font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 3px solid #5568d3;
+    color: #ffd700;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.principals-table th i {
+    margin-right: 8px;
 }
 
 .principals-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
-    border-bottom: 1px solid #e8e8e8;
 }
 
 .principals-table tbody tr:hover {
-    background-color: #f5f7ff;
-    transform: scale(1.005);
-    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.25);
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.principals-table tbody td {
-    padding: 16px 15px;
-    color: #2c3e50;
+.principals-table td {
+    padding: 15px;
     font-size: 14px;
-    vertical-align: middle;
-}
-
-/* Alternatif Sat�r Rengi */
-.principals-table tbody tr:nth-child(even) {
-    background-color: rgba(102, 126, 234, 0.06);
-}
-
-/* ================================================
-   KATEGOR� BADGE ST�LLER�
-   ================================================ */
-
-.category-badge {
-    display: inline-block;
-    padding: 7px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: capitalize;
     color: white;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Person and Title Styles */
+.person-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.title-name {
+    color: #ffd700;
+    text-decoration: none;
     transition: all 0.3s ease;
 }
 
-.category-badge:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.title-name:hover {
+    color: #ff6b9d;
+    text-decoration: underline;
+}
+
+/* Category Badges */
+.category-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: white;
 }
 
 .category-actor {
-    background: linear-gradient(135deg, #FF6B6B, #C92A2A);
+    background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
 .category-actress {
-    background: linear-gradient(135deg, #FF6EC7, #C2185B);
+    background: linear-gradient(135deg, #f093fb, #f5576c);
 }
 
 .category-director {
-    background: linear-gradient(135deg, #4ECDC4, #1A535C);
+    background: linear-gradient(135deg, #f093fb, #f5576c);
 }
 
 .category-writer {
-    background: linear-gradient(135deg, #95E1D3, #38A3A5);
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
 }
 
 .category-producer {
-    background: linear-gradient(135deg, #F38181, #AA3838);
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
 }
 
 .category-composer {
@@ -198,207 +164,36 @@
     background: linear-gradient(135deg, #B4A7D6, #8E7CC3);
 }
 
-/* ================================================
-   DETAY SAYFASI KART ST�LLER�
-   ================================================ */
-
-.detail-card {
-    background: white;
-    border-radius: 15px;
-    padding: 35px;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
-    max-width: 850px;
-    margin: 25px auto;
-}
-
-.detail-card table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.detail-card th {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 16px;
-    text-align: left;
-    font-weight: bold;
-    width: 220px;
-    border-bottom: 3px solid #5568d3;
-    font-size: 14px;
-}
-
-.detail-card td {
-    padding: 16px;
-    color: #2c3e50;
-    border-bottom: 1px solid #e8e8e8;
-    background-color: #fafbfc;
-    font-size: 14px;
-}
-
-.detail-card tr:last-child td,
-.detail-card tr:last-child th {
-    border-bottom: none;
-}
-
-.detail-card tr:hover td {
-    background-color: #f0f3f7;
-    transition: background-color 0.3s ease;
-}
-
-/* ================================================
-   FORM ST�LLER�
-   ================================================ */
-
-.form-container {
-    background: white;
-    border-radius: 15px;
-    padding: 35px;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
-    max-width: 750px;
-    margin: 25px auto;
-}
-
-.form-container input[type=\"text\"],
-.form-container input[type=\"number\"],
-.form-container select,
-.form-container textarea {
-    width: 100%;
-    padding: 13px;
-    border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Arial, sans-serif;
-}
-
-.form-container input:focus,
-.form-container select:focus,
-.form-container textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-    background-color: #f9f9ff;
-}
-
-.form-container label {
-    display: block;
-    color: #2c3e50;
-    font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-
-.form-group {
-    margin-bottom: 25px;
-}
-
-.form-group small {
-    display: block;
-    margin-top: 6px;
-    color: #666;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.form-submit-btn {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 16px 40px;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: all 0.4s ease;
-    box-shadow: 0 5px 20px rgba(76, 175, 80, 0.5);
-    width: 100%;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.form-submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.7);
-    background: linear-gradient(135deg, #45a049, #4CAF50);
-}
-
-/* ================================================
-   RESPONSIVE TASARIM
-   ================================================ */
-
-@media (max-width: 768px) {
-    .principals-container {
-        padding: 15px;
-    }
-    
-    .principals-table {
-        font-size: 12px;
-    }
-    
-    .principals-table thead th,
-    .principals-table tbody td {
-        padding: 10px 8px;
-    }
-    
-    .principals-title {
-        font-size: 2em;
-    }
-    
-    .detail-card, .form-container {
-        padding: 20px;
-    }
-    
-    .detail-card th {
-        width: 140px;
-        font-size: 12px;
-    }
-}
-
-/* ================================================
-   L�NK ST�LLER�
-   ================================================ */
-
-.principals-table a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    border-bottom: 2px solid transparent;
-}
-
-.principals-table a:hover {
-    color: #764ba2;
-    border-bottom: 2px solid #764ba2;
-}
-
-/* ================================================
-   �ZEL ELEMENT ST�LLER�
-   ================================================ */
-
-/* Karakter �simleri */
+/* Character Names */
 .character-names {
-    color: #555;
     font-style: italic;
+    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* View Details Button */
+.btn-view-details {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+    text-decoration: none;
+    border-radius: 8px;
     font-size: 13px;
-    line-height: 1.5;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
-/* �sim ve Ba�l�k Vurgusu */
-.person-name, .title-name {
-    font-weight: bold;
-    color: #1a1a1a;
+.btn-view-details:hover {
+    background: rgba(255, 215, 0, 0.3);
+    transform: translateX(3px);
+    color: #ffd700;
 }
 
-.person-name {
-    color: #2c3e50;
-}
-
-.title-name {
-    color: #667eea;
-}
-
-/* Bo� Durum Mesaj� */
+/* Empty State */
 .empty-state {
     text-align: center;
     padding: 80px 20px;
@@ -406,59 +201,31 @@
 }
 
 .empty-state h2 {
-    font-size: 2.2em;
+    font-size: 2em;
     margin-bottom: 15px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    color: #ffd700;
 }
 
 .empty-state p {
-    font-size: 1.3em;
+    font-size: 1.2em;
     opacity: 0.9;
-    line-height: 1.6;
+    margin-bottom: 10px;
 }
 
-/* �pucu Kutusu */
-.tips-box {
-    background: rgba(255, 255, 255, 0.12);
-    padding: 25px;
-    border-radius: 12px;
-    margin-top: 25px;
-    max-width: 750px;
-    margin-left: auto;
-    margin-right: auto;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.tips-box h3 {
-    color: white;
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.3em;
-}
-
-.tips-box ul {
-    color: white;
-    line-height: 2;
-    padding-left: 20px;
-}
-
-.tips-box li {
-    margin-bottom: 8px;
-}
-
-/* Animasyonlar */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
-.principals-container {
-    animation: fadeIn 0.5s ease-out;
+    .principals-table {
+        font-size: 12px;
+    }
+
+    .principals-table th,
+    .principals-table td {
+        padding: 10px 8px;
+    }
 }
