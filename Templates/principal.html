@@ -1,51 +1,92 @@
 {% extends "layout.html" %}
 {% block title %}Principal Details{% endblock %}
 {% block content %}
-    <h1 class="title">Principal Details</h1>
+    <link rel="stylesheet" href="/static/principals.css"/>
+    
+    <div class="principals-container">
+        <h1 class="principals-title">👤 Principal Details</h1>
 
-    <div style="margin-bottom: 20px;">
-        <a href="{{ url_for('principals_page') }}" style="background-color: #008CBA; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
-            Back to Principals List
-        </a>
-    </div>
-
-    <table class="movie-table">
-      <tr>
-        <th>Principal ID:</th>
-        <td>{{ principal.principal_id }}</td>
-      </tr>
-      <tr>
-        <th>Title ID:</th>
-        <td>
-            <a href="{{ url_for('title_page', title_id=principal.tconst) }}">
-                {{ principal.tconst }}
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="{{ url_for('principals_page') }}" class="btn-secondary">
+                ← Back to Principals List
             </a>
-        </td>
-      </tr>
-      <tr>
-        <th>Ordering:</th>
-        <td>{{ principal.ordering }}</td>
-      </tr>
-      <tr>
-        <th>Name ID:</th>
-        <td>{{ principal.nconst }}</td>
-      </tr>
-      <tr>
-        <th>Category:</th>
-        <td>{{ principal.category }}</td>
-      </tr>
-      {% if principal.job %}
-      <tr>
-        <th>Job:</th>
-        <td>{{ principal.job }}</td>
-      </tr>
-      {% endif %}
-      {% if principal.characters %}
-      <tr>
-        <th>Characters:</th>
-        <td>{{ principal.characters }}</td>
-      </tr>
-      {% endif %}
-    </table>
+        </div>
+
+        <div class="detail-card">
+            <table>
+                <tr>
+                    <th>🔢 Principal ID:</th>
+                    <td>{{ principal.principal_id }}</td>
+                </tr>
+                <tr>
+                    <th>👤 Person Name:</th>
+                    <td>
+                        <span class="person-name">
+                            {{ principal.person_name if principal.person_name else principal.nconst }}
+                        </span>
+                        {% if principal.person_birth_year %}
+                            <span style="color: #666; font-size: 13px;">
+                                (Born: {{ principal.person_birth_year }})
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if principal.person_profession %}
+                <tr>
+                    <th>💼 Known For:</th>
+                    <td>{{ principal.person_profession }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>🎬 Title:</th>
+                    <td>
+                        <a href="{{ url_for('title_page', title_id=principal.tconst) }}" style="color: #667eea; font-weight: bold;">
+                            {{ principal.title_name if principal.title_name else principal.tconst }}
+                        </a>
+                        {% if principal.title_year %}
+                            <span style="color: #666; font-size: 13px;">
+                                ({{ principal.title_year }})
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>📊 Ordering:</th>
+                    <td>{{ principal.ordering }}</td>
+                </tr>
+                <tr>
+                    <th>🎭 Category:</th>
+                    <td>
+                        <span class="category-badge category-{{ principal.category }}">
+                            {{ principal.category }}
+                        </span>
+                    </td>
+                </tr>
+                {% if principal.job %}
+                <tr>
+                    <th>💼 Job Title:</th>
+                    <td>{{ principal.job }}</td>
+                </tr>
+                {% endif %}
+                {% if principal.characters %}
+                <tr>
+                    <th>🎪 Characters:</th>
+                    <td>
+                        <div style="color: #444; line-height: 1.6;">
+                            {{ principal.characters }}
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>🔗 IDs:</th>
+                    <td style="font-size: 12px; color: #666;">
+                        <strong>Person ID:</strong> {{ principal.nconst }}<br>
+                        <strong>Title ID:</strong> {{ principal.tconst }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
 {% endblock %}
