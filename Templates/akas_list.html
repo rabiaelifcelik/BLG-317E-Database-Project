@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
-{% block title %}Alternate Titles List{% endblock %}
+{% block title %}Alternate Titles Catalog{% endblock %}
 
 {% block content %}
     <div class="akas-container">
         <h1>📑 Alternate Titles (Akas) Catalog</h1>
-        <p class="subtitle">Search localized and alternative titles</p>
+        <p class="subtitle">Browse localized and alternative titles for movies and shows</p>
 
         <div class="stats-bar">
             <span>Total Akas Displayed: <strong>{{ akas|length }}</strong></span>
@@ -15,18 +15,18 @@
             <div class="aka-card">
                 <div class="aka-header">
                     <h3>{{ aka.title }}</h3>
-                    <span class="aka-id">Title ID: {{ aka.titleId }}</span>
+                    <span class="aka-id">Region: {{ aka.region if aka.region else 'Global' }}</span>
                 </div>
                 
                 <div class="aka-info">
                     <div class="info-row">
-                        <span class="label">Primary Title:</span>
+                        <span class="label">Original Title:</span>
                         <span class="value">{{ aka.primaryTitle }}</span>
                     </div>
                     
                     <div class="info-row">
-                        <span class="label">Region/Language:</span>
-                        <span class="value">{{ aka.region }} / {{ aka.language if aka.language else 'N/A' }}</span>
+                        <span class="label">Language:</span>
+                        <span class="value lang-tag">{{ aka.language if aka.language else 'N/A' }}</span>
                     </div>
                 </div>
                 
