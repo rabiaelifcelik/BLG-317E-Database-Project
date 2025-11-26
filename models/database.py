@@ -34,11 +34,12 @@ class Database:
         #     print("title not found in database.")
 
 
-    def get_titles(self):
+    def get_titles(self, limit):
         # From real database
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
-            cursor.execute("SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT 200 ;")
+
+            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
             titles = cursor.fetchall()
 
         # From sample database
