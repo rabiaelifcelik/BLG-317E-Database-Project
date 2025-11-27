@@ -34,7 +34,7 @@ class Database:
         #     print("title not found in database.")
 
 
-    def get_titles(self, limit):
+    def get_titles(self, limit=200):
         # From real database
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
