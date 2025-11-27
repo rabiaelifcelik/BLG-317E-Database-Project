@@ -80,14 +80,30 @@ def people_page():
 
 def person_page(person_id):
     """Your person detail page"""
-    if request.method == "GET":
-        db = current_app.config["db"]
-        person = db.get_person(person_id)
-        
-        if person == None:
-            abort(404)
+    db = current_app.config["db"]
+    person = db.get_person(person_id)
     
-        return render_template("person.html", person=person)
+    if person == None:
+        abort(404)
+
+    return render_template("person.html", person=person)
+
+
+def person_add_page():
+    """Add new person page"""
+    if request.method == "GET":
+        return render_template('person_add.html')
+    else:
+        form_name = request.form["name"]
+        form_birth = request.form.get("birth_year", None)
+        form_death = request.form.get("death_year", None)
+        form_profession = request.form.get("profession", "")
+        form_known_for = request.form.get("known_for", "")
+        
+        db = current_app.config["db"]
+        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for)
+        
+        return redirect(url_for('person_page', person_id=new_id))
 
 
 def akas_list_page():
