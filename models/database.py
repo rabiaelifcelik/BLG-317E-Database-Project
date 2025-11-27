@@ -173,3 +173,41 @@ class Database:
             aka = cursor.fetchone()
         return aka
 
+    def get_ratings_list(self):
+        """Fetches a limited list of Ratings for the main list page, joining with titles."""
+        with connection.cursor() as cursor:
+            # Note: We must join with titles to get primaryTitle for context
+            query = """
+                SELECT 
+                    r.rating_id,
+                    r.title_id,
+                    r.average_rating,
+                    r.num_votes,
+                    t.primaryTitle 
+                FROM ratings r
+                JOIN titles t ON r.title_id = t.tconst
+                ORDER BY r.num_votes DESC
+                LIMIT 200;
+            """
+            cursor.execute(query)
+            ratings_list = cursor.fetchall()
+        return ratings_list
+
+    def get_single_rating(self, rating_id):
+        """Fetches a single, detailed Ratings record by its Primary Key."""
+        with connection.cursor() as cursor:
+            # Note: rating_id is the primary key defined in the latest schema
+            query = f"""
+                SELECT 
+                    r.rating_id,
+                    r.title_id,
+                    r.average_rating,
+                    r.num_votes,
+                    t.primaryTitle 
+                FROM ratings r
+                JOIN titles t ON r.title_id = t.tconst
+                WHERE r.rating_id = {rating_id};
+            """
+            cursor.execute(query)
+            rating = cursor.fetchone()
+        return rating

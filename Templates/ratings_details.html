@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block title %}Rating Details{% endblock %}
+
+{% block content %}
+    <div class="rating-detail-container">
+        <div class="back-nav">
+            <a href="{{ url_for('ratings_list_page') }}" class="btn-back">← Back to Ratings List</a>
+        </div>
+
+        <div class="rating-header-section">
+            <div class="rating-avatar">
+                <span class="avatar-icon">📊</span>
+            </div>
+            <div class="rating-title">
+                <h1>Rating Details for: {{ rating.primaryTitle }}</h1>
+                <span class="rating-id-badge">Entry ID: {{ rating.rating_id }}</span>
+            </div>
+        </div>
+
+        <div class="rating-info-grid">
+            <div class="info-card">
+                <h2>📈 Rating Summary</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Average Score:</span>
+                        <span class="info-value">{{ rating.average_rating }} / 10</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Votes:</span>
+                        <span class="info-value">{{ rating.num_votes | intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2>🔗 Title Association</h2>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Title ID (tconst):</span>
+                        <span class="info-value">
+                            <a href="{{ url_for('title_page', title_id=rating.title_id) }}">
+                                {{ rating.title_id }}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Title Name:</span>
+                        <span class="info-value">{{ rating.primaryTitle }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

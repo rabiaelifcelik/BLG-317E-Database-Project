@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block title %}All Ratings{% endblock %}
+
+{% block content %}
+    <div class="ratings-container">
+        <h1>⭐ Ratings Catalog</h1>
+        <p class="subtitle">Top rated titles by number of votes</p>
+
+        <div class="stats-bar">
+            <span>Total Ratings Displayed: <strong>{{ ratings|length }}</strong></span>
+        </div>
+
+        <div class="ratings-grid">
+            {% for rating in ratings %}
+            <div class="rating-card">
+                <div class="rating-header">
+                    <h3>{{ rating.primaryTitle }}</h3>
+                    <span class="rating-id">ID: {{ rating.rating_id }}</span>
+                </div>
+                
+                <div class="rating-info">
+                    <div class="info-row">
+                        <span class="label">Average Rating:</span>
+                        <span class="value">{{ rating.average_rating }} / 10</span>
+                    </div>
+                    
+                    <div class="info-row">
+                        <span class="label">Total Votes:</span>
+                        <span class="value">{{ rating.num_votes }}</span>
+                    </div>
+                </div>
+                
+                <div class="rating-actions">
+                    <a href="{{ url_for('ratings_details_page', rating_id=rating.rating_id) }}" class="btn-view">
+                        View Details →
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if ratings|length == 0 %}
+        <div class="empty-state">
+            <p>📭 No ratings data found in the database.</p>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

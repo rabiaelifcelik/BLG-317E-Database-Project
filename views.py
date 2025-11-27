@@ -120,3 +120,32 @@ def akas_details_page(title_id, ordering):
         aka=aka
     )
 
+# NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
+def ratings_list_page():
+    db = current_app.config["db"]
+    ratings = db.get_ratings_list() # Use the new list method
+    
+    return render_template(
+        "ratings_list.html",
+        ratings=ratings
+    )
+
+# NEW VIEW FUNCTION: ratings_details_page (For the details of a single rating entry)
+def ratings_details_page(rating_id):
+    db = current_app.config["db"]
+    
+    try:
+        rating_id = int(rating_id)
+    except ValueError:
+        abort(400) # Bad Request if ID is not a number
+
+    # Fetch the single Ratings record
+    rating = db.get_single_rating(rating_id) 
+
+    if rating is None:
+        abort(404) # Not Found
+
+    return render_template(
+        "ratings_details.html",
+        rating=rating
+    )
