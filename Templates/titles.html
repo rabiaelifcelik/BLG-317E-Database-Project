@@ -6,13 +6,51 @@
 {% block content %}
         <h1 class="title">Titles</h1>
 
-        {% if titles %}
-        <div class="scrollable-content">
-        {% for title in titles %}
-                <a href="{{ url_for('title_page', title_id=title.tconst) }}">
-                        <b>{{ title.primaryTitle }}</b><br>
-                </a>
-        {% endfor %}
+        <div class="stats-bar">
+                <span>Loaded Titles: <strong>{{ titles|length }}</strong></span>
         </div>
+        
+        {% if titles %}
+        <div class="titles-grid">
+                {% for title in titles %}
+                <div class="title-card">
+                        <div class="title-header">
+                                <h3>{{ title.primaryTitle }}</h3>
+                                <span class="title-id">{{ title.tconst }}</span>
+                        </div>
+
+                        <div class="title-info">
+                                <div class="info-row">
+                                        <span class="label">📅 Start Year:</span>
+                                        <span class="value">{{ title.startYear if title.startYear else 'Unknown' }}</span>
+                                </div>
+                                
+                                {% if title.endYear %}
+                                <div class="info-row">
+                                        <span class="label">End Year:</span>
+                                        <span class="value">{{ title.endYear }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="info-row">
+                                        <span class="label">Genres:</span>
+                                        <span class="value profession-tag">
+                                        {{ title.genres if title.genres else 'N/A' }}
+                                        </span>
+                                </div>
+
+                                <div class="title-actions">
+                                        <a href="{{ url_for('title_page', title_id=title.tconst) }}" class="btn-view">
+                                                View Details →
+                                        </a>
+                                </div>
+                        </div>
+                </div>
+                {% endfor %}
+                   
+        </div>
+        <div class="title-load">
+                <a href="{{url_for('titles_page', limit = 400)}}" class="btn-view">Scroll More</a>
+        </div>     
         {% endif %}
 {% endblock %}
