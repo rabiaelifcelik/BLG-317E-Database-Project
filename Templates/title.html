@@ -42,18 +42,38 @@
       </tr>
       <tr>
         <th>Crew:</th>
-        <table>
-          <tr>
-            <th>Directors:</th>
-            <td>{{crew.directors}}</td>
-          </tr>
+        <td>
+          {% if crew.directors %}
+            <b>Directors:</b>
+            
+              {% for director in crew.directors %}
+                
+                {% if not loop.last %}
+                  <a class="name-hover" href="{{ url_for('person_page', person_id=director.nconst) }}">
+                  {{director.primaryName}}</a>, 
+                {% else %}
+                  <a class="name-hover" href="{{ url_for('person_page', person_id=director.nconst) }}">
+                  {{director.primaryName}}</a> 
+                {% endif %}
+            
+              {% endfor %}
+          {% endif %} 
+          <br>
           {% if crew.writers%}
-          <tr>
-            <th>Writers: </th>
-            <td>{{crew.writers}}</td>
-          </tr>
+            <b>Writers: </b>
+            {% for writer in crew.writers %}
+                
+                {% if not loop.last %}
+                  <a class="name-hover" href="{{ url_for('person_page', person_id=writer.nconst) }}">
+                  {{writer.primaryName}}</a>, 
+                {% else %}
+                  <a class="name-hover" href="{{ url_for('person_page', person_id=writer.nconst) }}">
+                  {{writer.primaryName}}</a> 
+                {% endif %}
+            
+              {% endfor %}
           {%endif %}
-        </table>
+        </td>
         <input hidden="true" value="{{title.isAdult}}"/>
       </tr>
     </table>
