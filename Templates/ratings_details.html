@@ -23,11 +23,11 @@
                 <div class="info-list">
                     <div class="info-item">
                         <span class="info-label">Average Score:</span>
-                        <span class="info-value">{{ rating.average_rating }} / 10</span>
+                        <span class="info-value">{{ rating.averageRating }} / 10</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Total Votes:</span>
-                        <span class="info-value">{{ rating.num_votes | intcomma }}</span>
+                        <span class="info-value">{{ rating.numVotes}}</span>
                     </div>
                 </div>
             </div>
@@ -38,8 +38,8 @@
                     <div class="info-item">
                         <span class="info-label">Title ID (tconst):</span>
                         <span class="info-value">
-                            <a href="{{ url_for('title_page', title_id=rating.title_id) }}">
-                                {{ rating.title_id }}
+                            <a href="{{ url_for('title_page', title_id=rating.titleId) }}">
+                                {{ rating.titleId }}
                             </a>
                         </span>
                     </div>

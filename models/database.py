@@ -172,7 +172,7 @@ class Database:
         with connection.cursor() as cursor:
             # Join with titles to show the primary title for context
             query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, t.primaryTitle 
+                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
                 FROM akas a
                 JOIN titles t ON a.titleId = t.tconst
                 LIMIT 200;
@@ -199,13 +199,13 @@ class Database:
             query = """
                 SELECT 
                     r.rating_id,
-                    r.title_id,
-                    r.average_rating,
-                    r.num_votes,
+                    r.titleId,
+                    r.averageRating,
+                    r.numVotes,
                     t.primaryTitle 
                 FROM ratings r
-                JOIN titles t ON r.title_id = t.tconst
-                ORDER BY r.num_votes DESC
+                JOIN titles t ON r.titleId = t.tconst
+                ORDER BY r.numVotes DESC
                 LIMIT 200;
             """
             cursor.execute(query)
@@ -219,14 +219,16 @@ class Database:
             query = f"""
                 SELECT 
                     r.rating_id,
-                    r.title_id,
-                    r.average_rating,
-                    r.num_votes,
+                    r.titleId,
+                    r.averageRating,
+                    r.numVotes,
                     t.primaryTitle 
                 FROM ratings r
-                JOIN titles t ON r.title_id = t.tconst
+                JOIN titles t ON r.titleId = t.tconst
                 WHERE r.rating_id = {rating_id};
             """
             cursor.execute(query)
+            
             rating = cursor.fetchone()
+            print(rating)
         return rating
