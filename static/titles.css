@@ -107,6 +107,9 @@
     align-self: center;
     align-items: center;
 }
+.movie-table {
+    text-align: left;
+}
 
 .btn-view {
     display: inline-block;

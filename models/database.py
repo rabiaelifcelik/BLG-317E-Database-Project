@@ -232,7 +232,7 @@ class Database:
         with connection.cursor() as cursor:
             # Join with titles to show the primary title for context
             query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, t.primaryTitle 
+                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
                 FROM akas a
                 JOIN titles t ON a.titleId = t.tconst
                 LIMIT 200;
@@ -253,19 +253,17 @@ class Database:
         return aka
 
     def get_ratings_list(self):
-        """Fetches a limited list of Ratings for the main list page, joining with titles."""
         with connection.cursor() as cursor:
-            # Note: We must join with titles to get primaryTitle for context
+            # Revert to LEFT JOIN to fetch the actual title name
             query = """
                 SELECT 
                     r.rating_id,
-                    r.title_id,
+                    r.title_id,      /* <--- BURAYI DÜZELTİN (r.titleId yerine r.title_id) */
                     r.average_rating,
                     r.num_votes,
                     t.primaryTitle 
                 FROM ratings r
-                JOIN titles t ON r.title_id = t.tconst
-                ORDER BY r.num_votes DESC
+                LEFT JOIN titles t ON r.title_id = t.tconst
                 LIMIT 200;
             """
             cursor.execute(query)
@@ -288,5 +286,7 @@ class Database:
                 WHERE r.rating_id = {rating_id};
             """
             cursor.execute(query)
+            
             rating = cursor.fetchone()
+            print(rating)
         return rating
