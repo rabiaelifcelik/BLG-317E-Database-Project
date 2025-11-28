@@ -34,12 +34,11 @@ class Database:
         #     print("title not found in database.")
 
 
-    def get_titles(self, limit=200):
+    def get_titles(self):
         # From real database
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
-
-            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
+            cursor.execute("SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT 200 ;")
             titles = cursor.fetchall()
 
         # From sample database
@@ -57,24 +56,6 @@ class Database:
             cursor.execute(query)
             crew = cursor.fetchone()
 
-            # Fetch Directors
-            directors_list = [f"{name}" for name in crew["directors"].split(",")]
-            director_str = ",".join(["%s"] * len(directors_list))
-            query_directors = f"SELECT nconst, primaryName FROM people WHERE nconst IN ({director_str})"
-            cursor.execute(query_directors, directors_list)
-            directors = cursor.fetchall()
-            print("directors:", directors)
-            crew["directors"] = directors
-
-            # Fetch Writers
-            if crew["writers"] is not None:
-                writers_list = [f"{name}" for name in crew["writers"].split(",")]
-                writers_placeholder = ",".join(["%s"] * len(writers_list))
-                query_writers = f"SELECT nconst, primaryName FROM people WHERE nconst IN ({writers_placeholder})"
-                cursor.execute(query_writers, writers_list)
-                writers = directors = cursor.fetchall()
-                crew["writers"] = writers
-
         
         return crew
     
@@ -84,7 +65,7 @@ class Database:
                 SELECT 
                     p.principal_id,
                     p.tconst,
-                    t.primaryTitle as title,
+                    t.primaryTitle as title_name,
                     p.ordering,
                     p.nconst,
                     pe.primaryName as person_name,
