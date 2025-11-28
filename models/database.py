@@ -38,7 +38,6 @@ class Database:
         # From real database
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
-
             cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
             titles = cursor.fetchall()
 
@@ -72,7 +71,7 @@ class Database:
                 writers_placeholder = ",".join(["%s"] * len(writers_list))
                 query_writers = f"SELECT nconst, primaryName FROM people WHERE nconst IN ({writers_placeholder})"
                 cursor.execute(query_writers, writers_list)
-                writers = directors = cursor.fetchall()
+                writers = cursor.fetchall()
                 crew["writers"] = writers
 
         
@@ -142,26 +141,87 @@ class Database:
         return True
 
     def get_people(self):
-        """Get all people from database"""
+        """Get all people from database with additional info"""
         with connection.cursor() as cursor:
-            # Fetch people with their basic info
-            cursor.execute("SELECT nconst, primaryName, birthYear, deathYear, primaryProfession FROM people LIMIT 200;")
+            query = """
+                SELECT 
+                    p.nconst,
+                    p.primaryName,
+                    p.birthYear,
+                    p.deathYear,
+                    p.primaryProfession,
+                    p.knownForTitles,
+                    COUNT(pr.principal_id) as movie_count
+                FROM people p
+                LEFT JOIN principals pr ON p.nconst = pr.nconst
+                GROUP BY p.nconst, p.primaryName, p.birthYear, p.deathYear, 
+                         p.primaryProfession, p.knownForTitles
+                ORDER BY movie_count DESC
+                LIMIT 200
+            """
+            cursor.execute(query)
             people = cursor.fetchall()
         
         return people
     
 
     def get_person(self, person_id):
-        """Get a specific person by ID"""
+        """Get a specific person by ID with their movies"""
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM people WHERE nconst = '{person_id}';")
+            # Get person details
+            query = """
+                SELECT 
+                    p.*,
+                    COUNT(pr.principal_id) as total_credits
+                FROM people p
+                LEFT JOIN principals pr ON p.nconst = pr.nconst
+                WHERE p.nconst = %s
+                GROUP BY p.nconst
+            """
+            cursor.execute(query, (person_id,))
             person = cursor.fetchone()
         
-        if person is not None:
-            return person
-        else:
+        if person is None:
             print("Person not found in database.")
             return None
+        
+        # Get person's movies
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    t.tconst,
+                    t.primaryTitle,
+                    t.startYear,
+                    t.titleType,
+                    pr.category,
+                    pr.characters
+                FROM principals pr
+                JOIN titles t ON pr.tconst = t.tconst
+                WHERE pr.nconst = %s
+                ORDER BY t.startYear DESC
+                LIMIT 20
+            """
+            cursor.execute(query, (person_id,))
+            person['movies'] = cursor.fetchall()
+        
+        return person
+    
+    def add_person(self, name, birth_year, death_year, profession, known_for):
+        """Add a new person to database"""
+        with connection.cursor() as cursor:
+            # Generate nconst (simple approach - in real app use better method)
+            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 'nm%'")
+            max_id = cursor.fetchone()
+            new_id = f"nm{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
+            
+            query = """
+                INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (new_id, name, birth_year, death_year, profession, known_for))
+            connection.commit()
+        
+        return new_id
 
 
 
