@@ -7,9 +7,9 @@ from models.database import Database
 def home_page():
     return render_template('home.html') 
 
-def titles_page():
+def titles_page(limit = 200):
     db = current_app.config["db"]
-    titles = db.get_titles()
+    titles = db.get_titles(limit)
     return render_template('titles.html', titles=titles)
 
     # This lines is for psoudo-databases
