@@ -20,8 +20,44 @@ class Database:
 
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
-            cursor.execute(f"SELECT * FROM titles WHERE tconst = '{title_key}';")
+            query = f"""
+                SELECT  t.tconst,
+                CASE
+                    WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
+                        CASE
+                            WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
+                                CONCAT(
+                                    pt.primaryTitle,
+                                    ' (S',
+                                    LPAD(e.seasonNumber, 2, '0'),
+                                    'E',
+                                    LPAD(e.episodeNumber, 2, '0'),
+                                    ')'
+                                )
+                            ELSE
+                                pt.primaryTitle
+                        END
+                    ELSE
+                        t.primaryTitle
+                END AS primaryTitle,
+
+                t.primaryTitle AS original_title,
+                t.titleType,
+                t.startYear,
+                t.endYear,
+                t.runtimeMinutes,
+                t.genres
+
+            FROM titles t
+            LEFT JOIN episode e ON e.tconst = t.tconst
+            LEFT JOIN titles pt ON pt.tconst = e.parentTconst
+
+            WHERE t.tconst = "{title_key}";
+            """
+
+            cursor.execute(query)
             title = cursor.fetchone()
+            print(title)
 
         if title is not None or "":
             return title
@@ -39,7 +75,42 @@ class Database:
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
 
-            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
+            query = f"""SELECT 
+                        t.tconst,
+
+                        CASE
+                            WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
+                                CASE
+                                    WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
+                                        CONCAT(
+                                            pt.primaryTitle,
+                                            ' (S',
+                                            LPAD(e.seasonNumber, 2, '0'),
+                                            'E',
+                                            LPAD(e.episodeNumber, 2, '0'),
+                                            ')'
+                                        )
+                                    ELSE
+                                        pt.primaryTitle
+                                END
+                            ELSE
+                                t.primaryTitle
+                        END AS primaryTitle,
+
+                        t.primaryTitle AS original_title,
+                        t.titleType,
+                        t.startYear,
+                        t.endYear,
+                        t.runtimeMinutes
+
+                    FROM titles t
+                    LEFT JOIN episode e ON e.tconst = t.tconst
+                    LEFT JOIN titles pt ON pt.tconst = e.parentTconst
+
+                    ORDER BY t.tconst
+                    LIMIT 200;
+                    """
+            cursor.execute(query)
             titles = cursor.fetchall()
 
         # From sample database
@@ -84,23 +155,52 @@ class Database:
                 SELECT 
                     p.principal_id,
                     p.tconst,
-                    t.primaryTitle as title_name,
+
+                    CASE
+                        WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
+                            CASE
+                                WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
+                                    CONCAT(
+                                        pt.primaryTitle,
+                                        ' (S',
+                                        LPAD(e.seasonNumber, 2, '0'),
+                                        'E',
+                                        LPAD(e.episodeNumber, 2, '0'),
+                                        ')'
+                                    )
+                                ELSE
+                                    pt.primaryTitle
+                            END
+                        ELSE
+                            t.primaryTitle
+                    END AS title_name,
+
                     p.ordering,
                     p.nconst,
-                    pe.primaryName as person_name,
+                    pe.primaryName AS person_name,
                     p.category,
                     p.job,
                     p.characters
+
                 FROM principals p
+
                 LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN episode e ON e.tconst = p.tconst
+                LEFT JOIN titles pt ON pt.tconst = e.parentTconst
                 LEFT JOIN people pe ON p.nconst = pe.nconst
-                ORDER BY p.principal_id DESC
-                LIMIT 200
+
+                ORDER BY p.principal_id DESC 
+                LIMIT 200;
             """
             cursor.execute(query)
             principals = cursor.fetchall()
+            print(principals)
         return principals
-    
+
+
+
+
+        
     def get_principal(self, principal_id):
         with connection.cursor() as cursor:
             query = """
@@ -172,7 +272,7 @@ class Database:
         with connection.cursor() as cursor:
             # Join with titles to show the primary title for context
             query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, t.primaryTitle 
+                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
                 FROM akas a
                 JOIN titles t ON a.titleId = t.tconst
                 LIMIT 200;
