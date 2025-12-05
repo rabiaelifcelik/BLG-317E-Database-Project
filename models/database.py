@@ -1,5 +1,6 @@
 from titles import Titles
 from config import connection
+import pymysql
 
 class Database:
     def __init__(self):
@@ -17,7 +18,12 @@ class Database:
             del self.titles[title_key]
 
     def get_title(self, title_key):
-
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+            
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
             cursor.execute(f"SELECT * FROM titles WHERE tconst = '{title_key}';")
@@ -35,7 +41,12 @@ class Database:
 
 
     def get_titles(self, limit=200):
-        # From real database
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
             cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
@@ -51,6 +62,12 @@ class Database:
     
 
     def get_crew(self,title_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             query = f"SELECT * FROM crew WHERE tconst = '{title_id}'"
             cursor.execute(query)
@@ -78,6 +95,12 @@ class Database:
         return crew
     
     def get_principals(self):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             query = """
                 SELECT 
@@ -101,6 +124,12 @@ class Database:
         return principals
     
     def get_principal(self, principal_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             query = """
                 SELECT 
@@ -131,6 +160,12 @@ class Database:
             return None
     
     def add_principal(self, title_id, ordering, name_id, category, job, characters):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             query = """
                 INSERT INTO principals (tconst, ordering, nconst, category, job, characters) 
@@ -142,7 +177,14 @@ class Database:
 
     def get_people(self):
         """Get all people from database with additional info"""
-        with connection.cursor() as cursor:
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
+        with connection:
+            cursor = connection.cursor()
             query = """
                 SELECT 
                     p.nconst,
@@ -166,6 +208,12 @@ class Database:
     
 
     def get_person(self, person_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         """Get a specific person by ID with their movies"""
         with connection.cursor() as cursor:
             # Get person details
@@ -207,6 +255,12 @@ class Database:
         return person
     
     def add_person(self, name, birth_year, death_year, profession, known_for):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         """Add a new person to database"""
         with connection.cursor() as cursor:
             # Generate nconst (simple approach - in real app use better method)
@@ -228,6 +282,12 @@ class Database:
 # --- Add this method to the Database class in models/database.py ---
 
     def get_akas_list(self):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
             # Join with titles to show the primary title for context
@@ -242,6 +302,12 @@ class Database:
         return akas_list
 
     def get_single_aka(self, title_id, ordering):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         """Fetches a single, detailed AKA record."""
         with connection.cursor() as cursor:
             query = f"""
@@ -253,6 +319,12 @@ class Database:
         return aka
 
     def get_ratings_list(self):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         with connection.cursor() as cursor:
             # Revert to LEFT JOIN to fetch the actual title name
             query = """
@@ -271,6 +343,12 @@ class Database:
         return ratings_list
 
     def get_single_rating(self, rating_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
         """Fetches a single, detailed Ratings record by its Primary Key."""
         with connection.cursor() as cursor:
             # Note: rating_id is the primary key defined in the latest schema
