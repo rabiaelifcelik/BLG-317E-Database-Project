@@ -94,6 +94,28 @@ class Database:
         
         return crew
     
+    def add_title(self, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres ):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE t%'")
+            max_id = cursor.fetchone()
+            new_id = f"t{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
+            query = """
+                INSERT INTO people (tconst, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (new_id, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres))
+            connection.commit()
+        
+        return new_id
+
+
+
     def get_principals(self):
         try:
             connection.ping(reconnect=True)

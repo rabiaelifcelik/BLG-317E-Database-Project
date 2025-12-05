@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+{% block title %}Add Principal{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/titles.css"/>
+{% endblock %}
+{% block content %}
+    <div style="text-align: left; margin-bottom: 20px; margin-left:30px">
+            <a href="{{ url_for('titles_page') }}" class="btn-secondary">
+                ← Back to Titles List
+            </a>
+    </div>
+
+    <div class="titles-container">
+        <h1 class="titles-title">➕ Add New Title</h1>
+
+        <div class="form-container">
+            <form action="{{ url_for('title_add_page') }}" method="post">
+                <div class="form-group">
+                    <div class="label-div">
+                    <label for="title_type">Title Type</label></div>
+                    <div class="input-div">
+                        <select id="category" name="category" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="short">Short</option>
+                            <option value="movie">Movie</option>
+                            <option value="tvShort">TV Short</option>
+                            <option value="tvMovie">TV Movie</option>
+                            <option value="tvEpisode">TV Episode</option>
+                            <option value="tvSeries">TV Series</option>
+                            <option value="tvMiniSeries">TV Mini Series</option>
+                            <option value="tvSpecial">TV Special</option>
+                            <option value="video">Video</option>
+                            <option value="videoGame">Video Game</option>
+                            <option value="tvPilot">Tv Pilot</option>
+                        </select>
+                    </div>
+                    <small >The type of the title</small>
+                </div>
+                
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="primary_title">Primary Title*</label>
+                    </div>
+
+                    <div class="input-div">
+                        <input type="text" id="primary_title" name="title" required >
+                    </div>
+                    <small>The known title of the content</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="original_title">Original Title*</label>
+                    </div>
+
+                    <div class="input-div">
+                        <input type="text" id="original_title" name="title" required>
+                    </div>
+                    <small>The original title of the content</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="isAdult">Adult Content</label> 
+                    </div>
+
+                    <div class="input-div">
+                        <input type="radio" id="is_adult" name="is_adult" required>
+                    </div>
+                    <small>Select if the content is not suitable for children</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="category">Start Year*</label>
+                    </div>
+
+                    <div class="input-div">
+                        <input type="month" id="start_year" name="year" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="category">End Year</label>
+                    </div>
+                    <div class="input-div">
+                        <input type="month" id="end_year" name="start_year">
+                    </div>
+                    <small>End year of the content (write if the content has multiple episodes)</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="runtime_minutes">Runtime Minutes</label>
+                    </div>
+                    <div class="input-div">
+                        <input type="number" id="runtime_minutes" name="runtime_minutes" min="-1"> 
+                    </div>
+                    <small>The length of the content (in minutes)</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                        <label for="genres">Genre</label>
+                    </div>
+                    <div class="input-div">
+                        <input type="text" id="name_id" name="name_id" required 
+                            placeholder="Action, Drama, Comedy etc.">
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn-submit">
+                        Add Content
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-container">
+            <h3>💡 Tips:</h3>
+            <ul>
+                <li>Fields marked with * are required</li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}

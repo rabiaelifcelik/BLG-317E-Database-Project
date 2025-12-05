@@ -38,6 +38,23 @@ def title_page(title_id):
         title.year = int(form_year) if form_year else None
 
         return render_template("title_edit.html", title = title)
+    
+def title_add_page():
+    if request.method == "GET":
+        return render_template('title_add.html')
+    else:
+        form_primary_title = request.form["primary_title"]
+        form_original_title = request.form["original_title"]
+        form_isAdult = request.form["isAdult"]
+        form_start_year = request.form["start_year"]
+        form_end_year = request.form.get("end_year", None)
+        form_runtime_minutes = request.form.get("runtime_minutes", None)
+        form_genres = request.form.get("genres", None)
+        
+        db = current_app.config["db"]
+        db.add_title(form_primary_title, form_original_title, int(form_isAdult), form_start_year, form_end_year, form_runtime_minutes, form_genres)
+        
+        return redirect(url_for('titles_page'))
 
 def cast_page():
     return render_template('cast.html')
