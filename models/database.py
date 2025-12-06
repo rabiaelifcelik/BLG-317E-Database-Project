@@ -218,8 +218,7 @@ class Database:
                     COUNT(pr.principal_id) as movie_count
                 FROM people p
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
-                GROUP BY p.nconst, p.primaryName, p.birthYear, p.deathYear, 
-                         p.primaryProfession, p.knownForTitles
+                GROUP BY p.nconst
                 ORDER BY movie_count DESC
                 LIMIT 200
             """
