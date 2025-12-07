@@ -45,6 +45,7 @@ if __name__ == '__main__':
     #ratings
     app.add_url_rule("/ratingslist", view_func=views.ratings_list_page)                     # <--- NEW RATINGS LIST PAGE
     app.add_url_rule("/ratingslist/<rating_id>", view_func=views.ratings_details_page)
+    app.add_url_rule("/ratings/add", view_func=views.rating_add_page, methods=["GET", "POST"])
 
     # ... rest of your routes ...
 

@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block title %}Add New Rating{% endblock %}
+
+{% block content %}
+<div class="rating-detail-container">
+    <div class="back-nav">
+        <a href="{{ url_for('ratings_list_page') }}" class="btn-back">← Back to Ratings</a>
+    </div>
+
+    <div class="add-form-container">
+        <h1>⭐ Add New Rating</h1>
+        
+        <form action="{{ url_for('rating_add_page') }}" method="POST" class="add-form">
+            
+            <div class="form-group">
+                <label for="title_id">Title ID (tconst) *</label>
+                <input type="text" id="title_id" name="title_id" required 
+                       placeholder="e.g., tt0111161">
+                <small>Must be an existing Title ID from the Titles database</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="average_rating">Average Rating *</label>
+                    <input type="number" id="average_rating" name="average_rating" 
+                           required step="0.1" min="0" max="10" 
+                           placeholder="e.g., 8.5">
+                    <small>Score between 0.0 and 10.0</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="num_votes">Number of Votes *</label>
+                    <input type="number" id="num_votes" name="num_votes" 
+                           required min="0" 
+                           placeholder="e.g., 1500">
+                    <small>Total count of user votes</small>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Add Rating</button>
+                <a href="{{ url_for('ratings_list_page') }}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Reusing the beautiful style from person_add.html */
+.add-form-container {
+    max-width: 700px;
+    margin: 30px auto;
+    background: rgba(129, 137, 255, 0.15); /* Slightly transparent purple */
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.add-form-container h1 {
+    color: #ffd700; /* Gold for Ratings */
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #ddd;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.form-group input {
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 1em;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.form-group small {
+    color: #aaa;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-submit {
+    flex: 1;
+    padding: 14px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: background 0.3s;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    .add-form-container {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}

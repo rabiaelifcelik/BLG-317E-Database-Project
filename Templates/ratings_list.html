@@ -1,8 +1,17 @@
 {% extends "layout.html" %}
 {% block title %}All Ratings{% endblock %}
 
+{% block page_css %}
+<link rel="stylesheet" href="/static/ratings.css"/>
+{% endblock %}
+
 {% block content %}
     <div class="ratings-container">
+        <div style="margin-bottom: 20px; text-align: center;">
+    <a href="{{ url_for('rating_add_page') }}" class="btn-view" style="background: #ffd700; color: #333;">
+        ➕ Add New Rating
+    </a>
+    </div>
         <h1>⭐ Ratings Catalog</h1>
         <p class="subtitle">Top rated titles by number of votes</p>
 

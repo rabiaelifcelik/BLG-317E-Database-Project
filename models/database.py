@@ -406,3 +406,12 @@ class Database:
             rating = cursor.fetchone()
             print(rating)
         return rating
+    
+    def add_rating(self, title_id, average_rating, num_votes):
+        with connection.cursor() as cursor:
+            query = """
+                INSERT INTO ratings (title_id, average_rating, num_votes)
+                VALUES (%s, %s, %s)
+            """
+            cursor.execute(query, (title_id, average_rating, num_votes))
+            connection.commit()

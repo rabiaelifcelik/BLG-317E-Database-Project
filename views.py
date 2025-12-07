@@ -183,3 +183,23 @@ def ratings_details_page(rating_id):
         "ratings_details.html",
         rating=rating
     )
+
+def rating_add_page():
+    if request.method == "GET":
+        return render_template("ratings_add.html")
+    
+    # If method is POST (User submitted form)
+    elif request.method == "POST":
+        title_id = request.form.get("title_id")
+        average_rating = request.form.get("average_rating")
+        num_votes = request.form.get("num_votes")
+        
+        db = current_app.config["db"]
+        
+        try:
+            db.add_rating(title_id, average_rating, num_votes)
+            # Redirect to the list page on success
+            return redirect(url_for("ratings_list_page"))
+        except Exception as e:
+            # In a real app, you would flash an error message here
+            return f"Error adding rating. Ensure Title ID {title_id} exists. Error: {str(e)}"
