@@ -1,5 +1,6 @@
 from titles import Titles
 from config import connection
+import json
 import pymysql
 
 class Database:
@@ -69,28 +70,44 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM crew WHERE tconst = '{title_id}'"
+            #query = f"SELECT * FROM crew WHERE tconst = '{title_id}'" 
+
+            query = f"""SELECT
+                            c.tconst,
+
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'nconst', p.nconst,
+                                        'primaryName', p.primaryName
+                                    )
+                                )
+                                FROM people p
+                                WHERE FIND_IN_SET(p.nconst, c.directors)
+                            ) AS directors,
+
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'nconst', p.nconst,
+                                        'primaryName', p.primaryName
+                                    )
+                                )
+                                FROM people p
+                                WHERE FIND_IN_SET(p.nconst, c.writers)
+                            ) AS writers
+
+                        FROM crew c
+                        WHERE c.tconst = '{title_id}';
+                        """
+            
             cursor.execute(query)
             crew = cursor.fetchone()
+            
+            crew['directors'] = json.loads(crew['directors']) if crew['directors'] else []
+            crew['writers'] = json.loads(crew['writers']) if crew['writers'] else []
 
-            # Fetch Directors
-            directors_list = [f"{name}" for name in crew["directors"].split(",")]
-            director_str = ",".join(["%s"] * len(directors_list))
-            query_directors = f"SELECT nconst, primaryName FROM people WHERE nconst IN ({director_str})"
-            cursor.execute(query_directors, directors_list)
-            directors = cursor.fetchall()
-            print("directors:", directors)
-            crew["directors"] = directors
-
-            # Fetch Writers
-            if crew["writers"] is not None:
-                writers_list = [f"{name}" for name in crew["writers"].split(",")]
-                writers_placeholder = ",".join(["%s"] * len(writers_list))
-                query_writers = f"SELECT nconst, primaryName FROM people WHERE nconst IN ({writers_placeholder})"
-                cursor.execute(query_writers, writers_list)
-                writers = cursor.fetchall()
-                crew["writers"] = writers
-
+            print(crew['directors'], crew['writers'])
         
         return crew
     
