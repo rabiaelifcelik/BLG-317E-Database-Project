@@ -215,7 +215,7 @@ class Database:
         return True
 
     def get_people(self, search_query=None):
-        """Get all people from database with additional info"""
+        """Get all people from database"""
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -234,27 +234,19 @@ class Database:
                     p.deathYear,
                     p.primaryProfession,
                     p.knownForTitles,
-                    COUNT(pr.principal_id) as movie_count
+                    p.most_known_title,
+                    t.primaryTitle as most_known_title_name
                 FROM people p
-                LEFT JOIN principals pr ON p.nconst = pr.nconst
+                LEFT JOIN titles t ON p.most_known_title = t.tconst
             """
             
             # Add search condition if search_query is provided
             if search_query:
-                query += " WHERE p.primaryName LIKE %s"
+                query += " WHERE p.primaryName LIKE %s ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
                 search_param = f"%{search_query}%"
-                query += """
-                    GROUP BY p.nconst
-                    ORDER BY movie_count DESC
-                    LIMIT 200
-                """
                 cursor.execute(query, (search_param,))
             else:
-                query += """
-                    GROUP BY p.nconst
-                    ORDER BY movie_count DESC
-                    LIMIT 200
-                """
+                query += " ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
                 cursor.execute(query)
             
             people = cursor.fetchall()
@@ -275,11 +267,13 @@ class Database:
             query = """
                 SELECT 
                     p.*,
+                    t.primaryTitle as most_known_title_name,
                     COUNT(pr.principal_id) as total_credits
                 FROM people p
+                LEFT JOIN titles t ON p.most_known_title = t.tconst
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
                 WHERE p.nconst = %s
-                GROUP BY p.nconst
+                GROUP BY p.nconst, t.primaryTitle
             """
             cursor.execute(query, (person_id,))
             person = cursor.fetchone()

@@ -64,6 +64,13 @@
                             {{ person.primaryProfession if person.primaryProfession else 'N/A' }}
                         </span>
                     </div>
+                    
+                    {% if person.most_known_title_name %}
+                    <div class="info-row">
+                        <span class="label">⭐ Most Known For:</span>
+                        <span class="value">{{ person.most_known_title_name }}</span>
+                    </div>
+                    {% endif %}
                 </div>
                 
                 <div class="person-actions">
