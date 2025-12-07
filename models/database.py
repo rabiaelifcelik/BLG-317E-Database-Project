@@ -197,7 +197,7 @@ class Database:
             connection.commit()
         return True
 
-    def get_people(self):
+    def get_people(self, search_query=None):
         """Get all people from database with additional info"""
         try:
             connection.ping(reconnect=True)
@@ -207,6 +207,8 @@ class Database:
 
         with connection:
             cursor = connection.cursor()
+            
+            # Base query
             query = """
                 SELECT 
                     p.nconst,
@@ -218,11 +220,26 @@ class Database:
                     COUNT(pr.principal_id) as movie_count
                 FROM people p
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
-                GROUP BY p.nconst
-                ORDER BY movie_count DESC
-                LIMIT 200
             """
-            cursor.execute(query)
+            
+            # Add search condition if search_query is provided
+            if search_query:
+                query += " WHERE p.primaryName LIKE %s"
+                search_param = f"%{search_query}%"
+                query += """
+                    GROUP BY p.nconst
+                    ORDER BY movie_count DESC
+                    LIMIT 200
+                """
+                cursor.execute(query, (search_param,))
+            else:
+                query += """
+                    GROUP BY p.nconst
+                    ORDER BY movie_count DESC
+                    LIMIT 200
+                """
+                cursor.execute(query)
+            
             people = cursor.fetchall()
         
         return people

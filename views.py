@@ -91,8 +91,9 @@ def principal_add_page():
 def people_page():
     """Your people list page"""
     db = current_app.config["db"]
-    people = db.get_people()
-    return render_template('people.html', people=people)
+    search_query = request.args.get('search', '').strip()
+    people = db.get_people(search_query if search_query else None)
+    return render_template('people.html', people=people, search_query=search_query)
 
 
 def person_page(person_id):
