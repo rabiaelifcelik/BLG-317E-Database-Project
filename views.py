@@ -71,6 +71,36 @@ def principal_page(principal_id):
         abort(404)
     return render_template("principal.html", principal=principal)
 
+def principal_edit_page(principal_id):
+    db = current_app.config["db"]
+    
+    if request.method == "GET":
+        principal = db.get_principal(principal_id)
+        if principal == None:
+            abort(404)
+        return render_template("principal_edit.html", principal=principal)
+    else:
+        form_title_id = request.form["title_id"]
+        form_ordering = request.form["ordering"]
+        form_name_id = request.form["name_id"]
+        form_category = request.form["category"]
+        form_job = request.form.get("job", "")
+        form_characters = request.form.get("characters", "")
+        
+        db.update_principal(principal_id, form_title_id, int(form_ordering), form_name_id, form_category, form_job, form_characters)
+        
+        return redirect(url_for('principal_page', principal_id=principal_id))
+
+def principal_delete_page(principal_id):
+    db = current_app.config["db"]
+    db.delete_principal(principal_id)
+    return redirect(url_for('principals_page'))
+
+def principals_statistics_page():
+    db = current_app.config["db"]
+    stats = db.get_principals_statistics()
+    return render_template("principals_statistics.html", stats=stats)
+
 def principal_add_page():
     if request.method == "GET":
         return render_template('principal_add.html')

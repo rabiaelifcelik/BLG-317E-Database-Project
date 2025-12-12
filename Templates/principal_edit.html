@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block title %}Edit Principal{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/principals.css"/>
+{% endblock %}
+{% block content %}
+    
+    <div class="principals-container">
+        <h1 class="principals-title">✏️ Edit Principal</h1>
+
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="{{ url_for('principal_page', principal_id=principal.principal_id) }}" class="btn-secondary">
+                ← Back to Principal Details
+            </a>
+        </div>
+
+        <div class="form-container">
+            <form action="{{ url_for('principal_edit_page', principal_id=principal.principal_id) }}" method="post">
+                <div class="form-group">
+                    <label for="title_id">🎬 Title ID *</label>
+                    <input type="text" id="title_id" name="title_id" required 
+                           placeholder="e.g., tt0000001" value="{{ principal.tconst }}">
+                    <small style="color: #666; font-size: 12px;">Enter the IMDb title ID (starts with 'tt')</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="ordering">📊 Billing Order *</label>
+                    <input type="number" id="ordering" name="ordering" required 
+                           placeholder="e.g., 1" min="1" value="{{ principal.ordering }}">
+                    <small style="color: #666; font-size: 12px;">Lower numbers appear first in credits</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="name_id">👤 Person ID (Name ID) *</label>
+                    <input type="text" id="name_id" name="name_id" required 
+                           placeholder="e.g., nm0000001" value="{{ principal.nconst }}">
+                    <small style="color: #666; font-size: 12px;">Enter the IMDb person ID (starts with 'nm')</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">🎭 Category *</label>
+                    <select id="category" name="category" required>
+                        <option value="">-- Select Role Category --</option>
+                        <option value="actor" {% if principal.category == 'actor' %}selected{% endif %}>🎬 Actor</option>
+                        <option value="actress" {% if principal.category == 'actress' %}selected{% endif %}>🎬 Actress</option>
+                        <option value="director" {% if principal.category == 'director' %}selected{% endif %}>🎥 Director</option>
+                        <option value="writer" {% if principal.category == 'writer' %}selected{% endif %}>✍️ Writer</option>
+                        <option value="producer" {% if principal.category == 'producer' %}selected{% endif %}>📽️ Producer</option>
+                        <option value="composer" {% if principal.category == 'composer' %}selected{% endif %}>🎵 Composer</option>
+                        <option value="cinematographer" {% if principal.category == 'cinematographer' %}selected{% endif %}>📷 Cinematographer</option>
+                        <option value="editor" {% if principal.category == 'editor' %}selected{% endif %}>✂️ Editor</option>
+                        <option value="self" {% if principal.category == 'self' %}selected{% endif %}>👤 Self</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="job">💼 Job Title</label>
+                    <input type="text" id="job" name="job" 
+                           placeholder="e.g., Executive Producer, Co-Director (optional)"
+                           value="{{ principal.job if principal.job else '' }}">
+                    <small style="color: #666; font-size: 12px;">Specific job title if different from category</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="characters">🎪 Characters</label>
+                    <textarea id="characters" name="characters" rows="3"
+                              placeholder='e.g., ["Character Name", "Another Character"] (optional)'>{{ principal.characters if principal.characters else '' }}</textarea>
+                    <small style="color: #666; font-size: 12px;">Character names in JSON array format (for actors/actresses)</small>
+                </div>
+
+                <button type="submit" class="form-submit-btn">
+                    💾 Save Changes
+                </button>
+            </form>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-top: 20px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: white; margin-top: 0;">💡 Tips:</h3>
+            <ul style="color: white; line-height: 1.8;">
+                <li>Fields marked with * are required</li>
+                <li>Title ID and Person ID must exist in the database</li>
+                <li>Changes will be saved immediately upon submission</li>
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}

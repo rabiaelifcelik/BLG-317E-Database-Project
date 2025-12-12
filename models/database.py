@@ -213,6 +213,72 @@ class Database:
             cursor.execute(query, (title_id, ordering, name_id, category, job, characters))
             connection.commit()
         return True
+    
+    def update_principal(self, principal_id, title_id, ordering, name_id, category, job, characters):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE principals 
+                SET tconst = %s, ordering = %s, nconst = %s, category = %s, job = %s, characters = %s
+                WHERE principal_id = %s
+            """
+            cursor.execute(query, (title_id, ordering, name_id, category, job, characters, principal_id))
+            connection.commit()
+        return True
+    
+    def delete_principal(self, principal_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = "DELETE FROM principals WHERE principal_id = %s"
+            cursor.execute(query, (principal_id,))
+            connection.commit()
+        return True
+    
+    def get_principals_statistics(self):
+        """Complex query with nested query, 4+ table join, and GROUP BY for principals statistics"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    p.category,
+                    COUNT(DISTINCT p.principal_id) as total_principals,
+                    COUNT(DISTINCT p.tconst) as total_titles,
+                    COUNT(DISTINCT p.nconst) as total_people,
+                    AVG(r.averageRating) as avg_title_rating,
+                    GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', ') as all_genres,
+                    (
+                        SELECT pe.primaryName 
+                        FROM principals p2
+                        JOIN people pe ON p2.nconst = pe.nconst
+                        WHERE p2.category = p.category
+                        GROUP BY pe.nconst, pe.primaryName
+                        ORDER BY COUNT(p2.principal_id) DESC
+                        LIMIT 1
+                    ) as most_active_person
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN ratings r ON p.tconst = r.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                WHERE p.category IS NOT NULL
+                GROUP BY p.category
+                HAVING COUNT(p.principal_id) > 0
+                ORDER BY total_principals DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
 
     def get_people(self, search_query=None):
         """Get all people from database"""
