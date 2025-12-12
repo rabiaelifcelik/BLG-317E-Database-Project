@@ -6,12 +6,16 @@
 {% block content %}
     
     <div class="principals-container">
-        <h1 class="principals-title">✏️ Edit Principal</h1>
-
-        <div style="text-align: center; margin-bottom: 20px;">
-            <a href="{{ url_for('principal_page', principal_id=principal.principal_id) }}" class="btn-secondary">
-                ← Back to Principal Details
-            </a>
+        <div class="page-header" style="flex-direction: column; align-items: stretch;">
+            <div style="text-align: center;">
+                <h1><i class="fas fa-edit"></i> Edit Principal</h1>
+                <p class="page-subtitle">Update cast or crew member information</p>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="{{ url_for('principal_page', principal_id=principal.principal_id) }}" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Details
+                </a>
+            </div>
         </div>
 
         <div class="form-container">
