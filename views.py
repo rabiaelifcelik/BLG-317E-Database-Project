@@ -184,6 +184,48 @@ def akas_details_page(title_id, ordering):
         aka=aka
     )
 
+def aka_add_page():
+    db = current_app.config["db"]
+    
+    if request.method == "GET":
+        return render_template("akas_add.html")
+    
+    elif request.method == "POST":
+        # Formdan verileri al
+        title_id = request.form.get("title_id")
+        ordering = request.form.get("ordering")
+        title = request.form.get("title")
+        region = request.form.get("region")
+        language = request.form.get("language")
+        types = request.form.get("types")
+        attributes = request.form.get("attributes")
+        is_original_title = request.form.get("is_original_title")
+        
+        # Tip dönüşümü: ordering'i int yap
+        try:
+            ordering = int(ordering)
+            is_original_title = int(is_original_title)
+        except ValueError:
+            # Hata mesajı gösterebilirsiniz
+            return "Hata: Ordering veya Is Original Title geçerli sayı değil.", 400
+
+        try:
+            db.add_aka(
+                title_id, 
+                ordering, 
+                title, 
+                region, 
+                language, 
+                types, 
+                attributes, 
+                is_original_title
+            )
+            # Başarılı olursa listeye yönlendir
+            return redirect(url_for("akas_list_page"))
+        except Exception as e:
+            # Foreign Key veya Primary Key hatası durumunda
+            return f"Error adding Alternate Title. Ensure Title ID exists and the Ordering ID is unique for that Title. Error: {str(e)}", 500
+
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
     db = current_app.config["db"]

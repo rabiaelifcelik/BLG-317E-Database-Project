@@ -432,6 +432,26 @@ class Database:
             cursor.execute(query)
             aka = cursor.fetchone()
         return aka
+    
+    def add_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        with connection.cursor() as cursor:
+            # NOT: titleId ve ordering primary key olduğu için, 
+            # aynı kaydı tekrar eklemeye çalışmak hata (1062) verir.
+            query = """
+                INSERT INTO akas (titleId, ordering, title, region, language, types, attributes, is_original_title)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (
+                title_id, 
+                ordering, 
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title
+            ))
+            connection.commit()
 
     def get_ratings_list(self):
         try:

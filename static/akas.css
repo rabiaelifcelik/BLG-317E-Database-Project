@@ -1,4 +1,4 @@
-/* ==================== AKAS PAGE STYLES ==================== */
+/* ==================== AKAS LIST PAGE (Titles/Principals Stili) ==================== */
 
 .akas-container {
     max-width: 1400px;
@@ -6,118 +6,350 @@
     padding: 20px;
 }
 
-.akas-container h1 {
-    text-align: center;
-    font-size: 42px;
-    margin-bottom: 15px;
-}
-
-.akas-container .subtitle {
-    text-align: center;
-    font-size: 18px;
-    opacity: 0.8;
-    margin-bottom: 30px;
-}
-
-.akas-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 25px;
-    margin-top: 20px;
-}
-
-.aka-card {
+/* --- Header Container (Liste Sayfası) --- */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 30px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 25px;
-    transition: all 0.4s ease;
-}
-
-.aka-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 215, 0, 0.5);
-}
-
-.aka-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
-}
-
-.aka-header h3 {
-    font-size: 20px;
-    color: #ffd700;
-    margin: 0;
-    flex: 1;
-}
-
-.aka-id {
-    font-size: 12px;
-    padding: 6px 12px;
-    background: rgba(255, 215, 0, 0.2);
     border-radius: 20px;
-    color: #ffd700;
-    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.aka-info .info-row {
+.header-container h1 {
+    font-size: 36px;
+    margin-bottom: 5px;
     display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    align-items: center;
+    gap: 15px;
+    color: #ffd700;
 }
 
-.aka-info .info-row:last-child {
-    border-bottom: none;
-}
-
-.aka-info .label {
-    font-weight: 600;
+.subtitle {
+    font-size: 16px;
     opacity: 0.8;
+    color: white;
+    margin-top: 0;
 }
 
-.aka-info .value {
-    font-weight: 500;
-}
-
-.lang-tag {
-    background: rgba(102, 126, 234, 0.3);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 13px;
-}
-
-.aka-actions {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.btn-view {
-    display: inline-block;
+/* --- Ekleme Butonu --- */
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
     color: white;
     text-decoration: none;
     border-radius: 10px;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
-.btn-view:hover {
+.btn-add:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
     color: white;
 }
 
-/* Responsive */
+/* --- Grid ve Liste Kartları --- */
+.akas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.aka-card {
+    background: rgba(129, 137, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.aka-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.aka-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    min-height: 60px;
+}
+
+.aka-header h3 {
+    margin: 0;
+    color: #ddff44;
+    font-size: 1.3em;
+    font-weight: 400;
+}
+
+.aka-id {
+    font-size: 0.8em;
+    color: #aaa;
+    font-family: monospace;
+    background: rgba(0,0,0,0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.aka-info {
+    flex: 1;
+    margin: 15px 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.label {
+    font-weight: 500;
+    color: #ddd;
+    font-size: 0.92em;
+}
+
+.value {
+    color: white;
+}
+
+.aka-actions {
+    margin-top: auto;
+    text-align: center;
+    padding-top: 15px;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-size: 0.95em;
+}
+
+.btn-view:hover {
+    background: #0056b3;
+    color: white;
+}
+
+
+/* ==================== AKAS DETAILS PAGE (RESTORED People Stili) ==================== */
+
+.aka-detail-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: white;
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Geri Butonu */
+.back-nav {
+    margin-bottom: 20px;
+}
+.btn-back {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+/* Detay Grid Yapısı */
+.aka-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+/* Detay Kartları (Glassmorphism) */
+.info-card {
+    background: rgba(129, 137, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.info-card h2 {
+    margin-top: 0;
+    color: #ddff44;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #ddd;
+}
+
+.info-value {
+    text-align: right;
+    font-weight: 500;
+}
+
+/* Badges (Attribute vb. için) */
+.profession-badges {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.profession-badge {
+    background-color: #ffd700;
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.status-alive {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+
+/* ==================== ADD FORM STYLES (Titles Stili - Ortak Form) ==================== */
+
+.form-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    max-width: 800px;
+    margin: 30px auto;
+}
+
+.form-group {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: rgba(61, 63, 157, 0.6);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 15px;
+}
+
+.form-group label {
+    width: 200px;
+    color: #ffd700;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.form-group input,
+.form-group select {
+    flex: 1;
+    margin-left: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.form-group small {
+    display: block;
+    margin-left: 15px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    max-width: 200px;
+}
+
+.form-submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.form-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 768px) {
-    .akas-grid {
+    .aka-info-grid, .header-container {
         grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .form-group label, .form-group input, .form-group select, .form-group small {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 5px;
     }
 }

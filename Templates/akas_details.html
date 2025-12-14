@@ -6,8 +6,12 @@
 
 {% block content %}
     <div class="aka-detail-container">
+        <div class="back-nav">
+            <a href="{{ url_for('akas_list_page') }}" class="btn-back">← Back to Akas List</a>
+        </div>
+
         <div class="aka-info-grid">
-            
+
             <div class="info-card">
                 <h2>🌍 Regional Information</h2>
                 <div class="info-list">
@@ -41,7 +45,7 @@
                         <span class="info-label">Is Original Title:</span>
                         <span class="info-value status-alive">{{ 'Yes' if aka.is_original_title else 'No' }}</span>
                     </div>
-                    
+
                     <div class="info-item">
                         <span class="info-label">Attributes (e.g., DVD, TV):</span>
                         <span class="info-value profession-badges">
@@ -54,7 +58,7 @@
                              {% endif %}
                         </span>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
