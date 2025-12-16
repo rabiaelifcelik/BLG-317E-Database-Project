@@ -452,6 +452,30 @@ class Database:
                 is_original_title
             ))
             connection.commit()
+    def update_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        """Aka kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE akas 
+                SET title = %s, 
+                    region = %s, 
+                    language = %s, 
+                    types = %s, 
+                    attributes = %s, 
+                    is_original_title = %s
+                WHERE titleId = %s AND ordering = %s
+            """
+            cursor.execute(query, (
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title,
+                title_id, 
+                ordering
+            ))
+            connection.commit()
 
     def get_ratings_list(self):
         try:
@@ -511,4 +535,16 @@ class Database:
                 VALUES (%s, %s, %s)
             """
             cursor.execute(query, (title_id, average_rating, num_votes))
+            connection.commit()
+
+    def update_rating(self, rating_id, average_rating, num_votes):
+        """Rating kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE ratings 
+                SET average_rating = %s, 
+                    num_votes = %s
+                WHERE rating_id = %s
+            """
+            cursor.execute(query, (average_rating, num_votes, rating_id))
             connection.commit()

@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+{% block title %}Edit Rating{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/ratings.css"/>
+{% endblock %}
+
+{% block content %}
+    <div class="ratings-container">
+        
+        <div class="header-container" style="flex-direction: column; align-items: stretch; text-align: center;">
+            <div>
+                <h1 style="justify-content: center;"><i class="fas fa-edit"></i> Edit Rating</h1>
+                <p class="subtitle" style="color: white; margin-top: 5px;">Update score and vote count</p>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="{{ url_for('ratings_details_page', rating_id=rating.rating_id) }}" class="btn-view" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-arrow-left"></i> Back to Details
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="{{ url_for('rating_edit_page', rating_id=rating.rating_id) }}" method="post">
+                
+                <div class="form-group">
+                    <label for="rating_id">Rating ID</label>
+                    <input type="text" id="rating_id" name="rating_id" value="{{ rating.rating_id }}" readonly style="opacity: 0.7; cursor: not-allowed;">
+                    <small>System ID (Cannot be changed)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="title_id">Title ID (tconst)</label>
+                    <input type="text" id="title_id" name="title_id" value="{{ rating.title_id }}" readonly style="opacity: 0.7; cursor: not-allowed;">
+                    <small>Associated Movie/Title</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="average_rating">Average Score *</label>
+                    <input type="number" id="average_rating" name="average_rating" required 
+                           step="0.1" min="0" max="10" 
+                           value="{{ rating.average_rating }}" placeholder="e.g., 8.5">
+                    <small>Score between 0.0 and 10.0</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="num_votes">Number of Votes *</label>
+                    <input type="number" id="num_votes" name="num_votes" required 
+                           min="0" 
+                           value="{{ rating.num_votes }}" placeholder="e.g., 1500">
+                    <small>Total count of user votes</small>
+                </div>
+
+                <button type="submit" class="form-submit-btn">
+                    💾 Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

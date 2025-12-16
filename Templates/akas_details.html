@@ -1,66 +1,101 @@
 {% extends "layout.html" %}
-{% block title %}AKA: {{ aka.title }}{% endblock %}
+{% block title %}Alternate Title Details{% endblock %}
 {% block page_css %}
 <link rel="stylesheet" href="/static/akas.css"/>
 {% endblock %}
 
 {% block content %}
-    <div class="aka-detail-container">
-        <div class="back-nav">
-            <a href="{{ url_for('akas_list_page') }}" class="btn-back">← Back to Akas List</a>
+    <div class="akas-container">
+        
+        <div class="page-header" style="flex-direction: column; align-items: stretch;">
+            <div style="text-align: center;">
+                <h1><i class="fas fa-file-alt"></i> Alternate Title Details</h1>
+                <p class="page-subtitle">Detailed information about this localization</p>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; align-items: center;">
+                
+                <a href="{{ url_for('akas_list_page') }}" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                
+                <a href="{{ url_for('aka_edit_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-edit">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+
+                </div>
         </div>
 
-        <div class="aka-info-grid">
-
-            <div class="info-card">
-                <h2>🌍 Regional Information</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="info-label">Title ID:</span>
-                        <span class="info-value">
-                            <a href="{{ url_for('title_page', title_id=aka.titleId) }}">
-                                {{ aka.titleId }}
-                            </a>
+        <div class="detail-card">
+            <table>
+                <tr>
+                    <th><i class="fas fa-hashtag"></i> Title ID (tconst):</th>
+                    <td>
+                        <a href="{{ url_for('title_page', title_id=aka.titleId) }}" style="color: #ffd700; text-decoration: none; font-weight: bold;">
+                            {{ aka.titleId }}
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-heading"></i> Localized Title:</th>
+                    <td>
+                        <span style="font-size: 18px; font-weight: 600; color: white;">
+                            {{ aka.title }}
                         </span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Title Ordering ID:</span>
-                        <span class="info-value">{{ aka.ordering }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Region Code:</span>
-                        <span class="info-value">{{ aka.region if aka.region else 'Global (N/A)' }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Language Code:</span>
-                        <span class="info-value">{{ aka.language if aka.language else 'N/A' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <h2>📑 Classification & Attributes</h2>
-                <div class="info-list">
-                    <div class="info-item">
-                        <span class="info-label">Is Original Title:</span>
-                        <span class="info-value status-alive">{{ 'Yes' if aka.is_original_title else 'No' }}</span>
-                    </div>
-
-                    <div class="info-item">
-                        <span class="info-label">Attributes (e.g., DVD, TV):</span>
-                        <span class="info-value profession-badges">
-                             {% if aka.attributes %}
-                                 {% for attr in aka.attributes.split(',') %}
-                                     <span class="profession-badge">{{ attr.strip() }}</span>
-                                 {% endfor %}
-                             {% else %}
-                                 N/A
-                             {% endif %}
-                        </span>
-                    </div>
-
-                </div>
-            </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-sort-numeric-down"></i> Ordering:</th>
+                    <td><span style="background: rgba(255, 215, 0, 0.2); padding: 4px 12px; border-radius: 6px; font-weight: 600;">{{ aka.ordering }}</span></td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-globe-americas"></i> Region:</th>
+                    <td>
+                        {% if aka.region %}
+                            <span style="background: rgba(102, 126, 234, 0.3); padding: 4px 12px; border-radius: 6px;">{{ aka.region }}</span>
+                        {% else %}
+                            <span style="opacity: 0.6;">Global / N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-language"></i> Language:</th>
+                    <td>
+                        {% if aka.language %}
+                            <span style="background: rgba(255, 107, 157, 0.3); padding: 4px 12px; border-radius: 6px;">{{ aka.language }}</span>
+                        {% else %}
+                            <span style="opacity: 0.6;">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-info-circle"></i> Type / Attributes:</th>
+                    <td>
+                        {% if aka.types %}
+                            <span style="color: #4facfe;">{{ aka.types }}</span>
+                        {% endif %}
+                        
+                        {% if aka.attributes %}
+                            {% if aka.types %} | {% endif %}
+                            <span style="color: #43e97b;">{{ aka.attributes }}</span>
+                        {% endif %}
+                        
+                        {% if not aka.types and not aka.attributes %}
+                            <span style="opacity: 0.6;">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th><i class="fas fa-certificate"></i> Is Original Title?</th>
+                    <td>
+                        {% if aka.is_original_title %}
+                            <span style="color: #4caf50; font-weight: bold;"><i class="fas fa-check"></i> Yes</span>
+                        {% else %}
+                            <span style="color: rgba(255,255,255,0.6);">No</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 {% endblock %}

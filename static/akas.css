@@ -1,4 +1,4 @@
-/* ==================== AKAS LIST PAGE (Titles/Principals Stili) ==================== */
+/* ==================== AKAS PAGE STYLES (Hibrit: Titles List + Principal Detail) ==================== */
 
 .akas-container {
     max-width: 1400px;
@@ -6,7 +6,7 @@
     padding: 20px;
 }
 
-/* --- Header Container (Liste Sayfası) --- */
+/* --- LIST PAGE HEADER (Titles Stili) --- */
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -35,7 +35,35 @@
     margin-top: 0;
 }
 
-/* --- Ekleme Butonu --- */
+/* --- DETAIL PAGE HEADER (Principal Stili - Ortalanmış) --- */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: #ffd700;
+    text-align: center;
+}
+
+.page-subtitle {
+    font-size: 16px;
+    opacity: 0.8;
+    color: white;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* --- BUTONLAR --- */
 .btn-add {
     display: inline-flex;
     align-items: center;
@@ -56,7 +84,85 @@
     color: white;
 }
 
-/* --- Grid ve Liste Kartları --- */
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+    color: white;
+}
+
+.btn-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #fa709a, #fee140);
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.3);
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(250, 112, 154, 0.5);
+    color: white;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-size: 0.95em;
+}
+
+/* --- GRID & CARDS (List Page) --- */
 .akas-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -112,6 +218,12 @@
     margin: 15px 0;
 }
 
+.aka-actions {
+    margin-top: auto;
+    text-align: center;
+    padding-top: 15px;
+}
+
 .info-row {
     display: flex;
     justify-content: space-between;
@@ -133,132 +245,49 @@
     color: white;
 }
 
-.aka-actions {
-    margin-top: auto;
-    text-align: center;
-    padding-top: 15px;
-}
-
-.btn-view {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
-    font-size: 0.95em;
-}
-
-.btn-view:hover {
-    background: #0056b3;
-    color: white;
-}
-
-
-/* ==================== AKAS DETAILS PAGE (RESTORED People Stili) ==================== */
-
-.aka-detail-container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 0 20px;
-    color: white;
-    animation: fadeIn 0.5s ease-in;
-}
-
-/* Geri Butonu */
-.back-nav {
-    margin-bottom: 20px;
-}
-.btn-back {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #6c757d;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-/* Detay Grid Yapısı */
-.aka-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-
-/* Detay Kartları (Glassmorphism) */
-.info-card {
-    background: rgba(129, 137, 255, 0.3);
+/* --- DETAIL CARD (Principal Stili Tablo) --- */
+.detail-card {
+    background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    margin-top: 20px;
 }
 
-.info-card h2 {
-    margin-top: 0;
-    color: #ddff44;
-    border-bottom: 2px solid #667eea;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-size: 1.5em;
+.detail-card table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 15px;
 }
 
-.info-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.detail-card tr {
+    transition: all 0.3s ease;
 }
 
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.detail-card tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
 }
 
-.info-item:last-child {
-    border-bottom: none;
+.detail-card th {
+    text-align: left;
+    padding: 15px 20px;
+    color: #ffd700;
+    font-weight: 600;
+    font-size: 15px;
+    width: 35%;
+    vertical-align: top;
 }
 
-.info-label {
-    font-weight: bold;
-    color: #ddd;
+.detail-card td {
+    padding: 15px 20px;
+    color: white;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
-.info-value {
-    text-align: right;
-    font-weight: 500;
-}
-
-/* Badges (Attribute vb. için) */
-.profession-badges {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.profession-badge {
-    background-color: #ffd700;
-    color: #333;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.85em;
-    font-weight: bold;
-}
-
-.status-alive {
-    color: #4caf50;
-    font-weight: bold;
-}
-
-
-/* ==================== ADD FORM STYLES (Titles Stili - Ortak Form) ==================== */
-
+/* --- FORM CONTAINER (Edit/Add Pages) --- */
 .form-container {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
@@ -286,8 +315,7 @@
     font-size: 15px;
 }
 
-.form-group input,
-.form-group select {
+.form-group input, .form-group select {
     flex: 1;
     margin-left: 10px;
     padding: 8px 12px;
@@ -298,8 +326,7 @@
     font-size: 14px;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus, .form-group select:focus {
     outline: none;
     border-color: #ffd700;
     background: rgba(255, 255, 255, 0.2);
@@ -333,15 +360,16 @@
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
+/* Responsive */
 @media (max-width: 768px) {
-    .aka-info-grid, .header-container {
-        grid-template-columns: 1fr;
+    .header-container, .page-header {
         flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    .detail-card th, .detail-card td {
+        display: block;
+        width: 100%;
     }
     .form-group {
         flex-direction: column;

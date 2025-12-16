@@ -44,11 +44,13 @@ if __name__ == '__main__':
     app.add_url_rule("/akaslist", view_func=views.akas_list_page)                 
     app.add_url_rule("/akaslist/<title_id>/<ordering>", view_func=views.akas_details_page)
     app.add_url_rule("/akas/add", view_func=views.aka_add_page, methods=["GET", "POST"])
+    app.add_url_rule("/akas/edit/<title_id>/<int:ordering>", view_func=views.aka_edit_page, methods=["GET", "POST"])
 
     #ratings
     app.add_url_rule("/ratingslist", view_func=views.ratings_list_page)                     # <--- NEW RATINGS LIST PAGE
     app.add_url_rule("/ratingslist/<rating_id>", view_func=views.ratings_details_page)
     app.add_url_rule("/ratings/add", view_func=views.rating_add_page, methods=["GET", "POST"])
+    app.add_url_rule("/ratings/edit/<int:rating_id>", view_func=views.rating_edit_page, methods=["GET", "POST"])
 
     # ... rest of your routes ...
 

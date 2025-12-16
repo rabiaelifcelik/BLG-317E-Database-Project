@@ -225,7 +225,41 @@ def aka_add_page():
         except Exception as e:
             # Foreign Key veya Primary Key hatası durumunda
             return f"Error adding Alternate Title. Ensure Title ID exists and the Ordering ID is unique for that Title. Error: {str(e)}", 500
+def aka_edit_page(title_id, ordering):
+    db = current_app.config["db"]
 
+    if request.method == "GET":
+        # Mevcut veriyi çek ve forma gönder
+        aka = db.get_single_aka(title_id, ordering)
+        if not aka:
+            return "Aka record not found", 404
+        return render_template("akas_edit.html", aka=aka)
+
+    elif request.method == "POST":
+        # Form verilerini al
+        title = request.form.get("title")
+        region = request.form.get("region")
+        language = request.form.get("language")
+        types = request.form.get("types")
+        attributes = request.form.get("attributes")
+        is_original_title = request.form.get("is_original_title")
+
+        # Güncelleme işlemini yap
+        try:
+            db.update_aka(
+                title_id, 
+                ordering, 
+                title, 
+                region, 
+                language, 
+                types, 
+                attributes, 
+                int(is_original_title)
+            )
+            # Detay sayfasına geri yönlendir
+            return redirect(url_for('akas_details_page', title_id=title_id, ordering=ordering))
+        except Exception as e:
+            return f"Error updating record: {str(e)}", 500
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
     db = current_app.config["db"]
@@ -275,3 +309,25 @@ def rating_add_page():
         except Exception as e:
             # In a real app, you would flash an error message here
             return f"Error adding rating. Ensure Title ID {title_id} exists. Error: {str(e)}"
+        
+def rating_edit_page(rating_id):
+    db = current_app.config["db"]
+
+    if request.method == "GET":
+        # Veriyi çek ve forma gönder
+        rating = db.get_single_rating(rating_id)
+        if not rating:
+            return "Rating record not found", 404
+        return render_template("ratings_edit.html", rating=rating)
+
+    elif request.method == "POST":
+        # Form verilerini al
+        average_rating = request.form.get("average_rating")
+        num_votes = request.form.get("num_votes")
+
+        try:
+            db.update_rating(rating_id, average_rating, num_votes)
+            # Detay sayfasına geri yönlendir
+            return redirect(url_for('ratings_details_page', rating_id=rating_id))
+        except Exception as e:
+            return f"Error updating rating: {str(e)}", 500
