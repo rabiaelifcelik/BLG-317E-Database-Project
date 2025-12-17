@@ -47,6 +47,11 @@
                     <a href="{{ url_for('ratings_details_page', rating_id=rating.rating_id) }}" class="btn-view">
                         View Details →
                     </a>
+                    <form action="{{ url_for('delete_rating_page', rating_id=rating.rating_id) }}" method="POST" onsubmit="return confirm('Bu kaydı silmek istediğine emin misin?');" style="margin: 0;">
+                            <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; height: 100%;">
+                                Sil 🗑️
+                            </button>
+                    </form>
                 </div>
             </div>
             {% endfor %}

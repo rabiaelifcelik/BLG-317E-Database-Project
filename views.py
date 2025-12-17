@@ -260,6 +260,21 @@ def aka_edit_page(title_id, ordering):
             return redirect(url_for('akas_details_page', title_id=title_id, ordering=ordering))
         except Exception as e:
             return f"Error updating record: {str(e)}", 500
+def delete_aka_page(title_id, ordering):
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # Silme fonksiyonunu çağır
+    try:
+        db.delete_aka(title_id, ordering)
+        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
+        return redirect(url_for("akas_list_page"))
+    except Exception as e:
+        return f"Silinirken hata oluştu: {e}"
+def akas_stats_page():
+    db = current_app.config["db"]
+    stats = db.get_akas_statistics()
+    return render_template("akas_statistics.html", stats=stats)
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
     db = current_app.config["db"]
@@ -331,3 +346,15 @@ def rating_edit_page(rating_id):
             return redirect(url_for('ratings_details_page', rating_id=rating_id))
         except Exception as e:
             return f"Error updating rating: {str(e)}", 500
+        
+def delete_rating_page(rating_id):
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # Silme fonksiyonunu çağır
+    try:
+        db.delete_rating(rating_id)
+        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
+        return redirect(url_for("ratings_list_page"))
+    except Exception as e:
+        return f"Silinirken hata oluştu: {e}"
