@@ -213,6 +213,72 @@ class Database:
             cursor.execute(query, (title_id, ordering, name_id, category, job, characters))
             connection.commit()
         return True
+    
+    def update_principal(self, principal_id, title_id, ordering, name_id, category, job, characters):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE principals 
+                SET tconst = %s, ordering = %s, nconst = %s, category = %s, job = %s, characters = %s
+                WHERE principal_id = %s
+            """
+            cursor.execute(query, (title_id, ordering, name_id, category, job, characters, principal_id))
+            connection.commit()
+        return True
+    
+    def delete_principal(self, principal_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = "DELETE FROM principals WHERE principal_id = %s"
+            cursor.execute(query, (principal_id,))
+            connection.commit()
+        return True
+    
+    def get_principals_statistics(self):
+        """Complex query with nested query, 4+ table join, and GROUP BY for principals statistics"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    p.category,
+                    COUNT(DISTINCT p.principal_id) as total_principals,
+                    COUNT(DISTINCT p.tconst) as total_titles,
+                    COUNT(DISTINCT p.nconst) as total_people,
+                    AVG(r.averageRating) as avg_title_rating,
+                    GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', ') as all_genres,
+                    (
+                        SELECT pe.primaryName 
+                        FROM principals p2
+                        JOIN people pe ON p2.nconst = pe.nconst
+                        WHERE p2.category = p.category
+                        GROUP BY pe.nconst, pe.primaryName
+                        ORDER BY COUNT(p2.principal_id) DESC
+                        LIMIT 1
+                    ) as most_active_person
+                FROM principals p
+                LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN ratings r ON p.tconst = r.tconst
+                LEFT JOIN people pe ON p.nconst = pe.nconst
+                WHERE p.category IS NOT NULL
+                GROUP BY p.category
+                HAVING COUNT(p.principal_id) > 0
+                ORDER BY total_principals DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
 
     def get_people(self, search_query=None):
         """Get all people from database"""
@@ -366,7 +432,96 @@ class Database:
             cursor.execute(query)
             aka = cursor.fetchone()
         return aka
+    
+    def add_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        with connection.cursor() as cursor:
+            # NOT: titleId ve ordering primary key olduğu için, 
+            # aynı kaydı tekrar eklemeye çalışmak hata (1062) verir.
+            query = """
+                INSERT INTO akas (titleId, ordering, title, region, language, types, attributes, is_original_title)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (
+                title_id, 
+                ordering, 
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title
+            ))
+            connection.commit()
+    def update_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        """Aka kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE akas 
+                SET title = %s, 
+                    region = %s, 
+                    language = %s, 
+                    types = %s, 
+                    attributes = %s, 
+                    is_original_title = %s
+                WHERE titleId = %s AND ordering = %s
+            """
+            cursor.execute(query, (
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title,
+                title_id, 
+                ordering
+            ))
+            connection.commit()
 
+            
+    def delete_aka(self, title_id, ordering):
+        # Senin delete_principal fonksiyonundaki mantığın aynısı:
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass # Hata olursa görmezden gel, devam et
+
+        with connection.cursor() as cursor:
+            # İki anahtarlı (titleId ve ordering) silme işlemi
+            query = "DELETE FROM akas WHERE titleId = %s AND ordering = %s"
+            cursor.execute(query, (title_id, ordering))
+            connection.commit()
+        return True
+    def get_akas_statistics(self):
+        """
+        OPTIMIZED COMPLEX QUERY:
+        - Uses a SUBQUERY (Derived Table) to limit the scan to 50,000 rows first.
+        - Joins only this sample data with 'titles'.
+        - Calculates Aggregations (Count, Avg, Sum).
+        - Runs instantly instead of freezing.
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    sub_a.region,
+                    COUNT(*) as total_entries,
+                    COUNT(DISTINCT sub_a.language) as language_count,
+                    ROUND(AVG(t.runtimeMinutes), 1) as avg_runtime,
+                    SUM(t.isAdult) as adult_count
+                FROM 
+                    (SELECT * FROM akas WHERE region IS NOT NULL LIMIT 50000) as sub_a
+                JOIN titles t ON sub_a.titleId = t.tconst
+                GROUP BY sub_a.region
+                ORDER BY total_entries DESC
+                LIMIT 15
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
     def get_ratings_list(self):
         try:
             connection.ping(reconnect=True)
@@ -426,3 +581,27 @@ class Database:
             """
             cursor.execute(query, (title_id, average_rating, num_votes))
             connection.commit()
+
+    def update_rating(self, rating_id, average_rating, num_votes):
+        """Rating kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE ratings 
+                SET average_rating = %s, 
+                    num_votes = %s
+                WHERE rating_id = %s
+            """
+            cursor.execute(query, (average_rating, num_votes, rating_id))
+            connection.commit()
+
+    def delete_rating(self, rating_id):
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass # Hata olursa görmezden gel, devam et
+
+        with connection.cursor() as cursor:
+            query = "DELETE FROM ratings WHERE rating_id = %s"
+            cursor.execute(query, (rating_id))
+            connection.commit()
+        return True

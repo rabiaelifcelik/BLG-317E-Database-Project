@@ -1,24 +1,37 @@
 {% extends "layout.html" %}
-{% block title %}Alternate Titles Catalog{% endblock %}
+{% block title %}Alternate Titles{% endblock %}
 {% block page_css %}
 <link rel="stylesheet" href="/static/akas.css"/>
 {% endblock %}
 
 {% block content %}
     <div class="akas-container">
-        <h1>📑 Alternate Titles (Akas) Catalog</h1>
-        <p class="subtitle">Browse localized and alternative titles for movies and shows</p>
-
-        <div class="stats-bar">
-            <span>Total Akas Displayed: <strong>{{ akas|length }}</strong></span>
+        <div class="header-container">
+            <div>
+                <h1><i class="fas fa-language"></i> Alternate Titles</h1>
+                <p class="subtitle">International titles and regional localizations</p>
+            </div>
+            <a href="{{ url_for('aka_add_page') }}" class="btn-add">
+                <i class="fas fa-plus"></i>
+                <span>Add New AKA!</span>
+            </a>
+            <a href="{{ url_for('akas_stats_page') }}" class="btn-add" style="background-color: #f39c12; margin-right: 10px;">
+                <i class="fas fa-chart-pie"></i>
+                <span>Statistics</span>
+            </a>
         </div>
 
+        <div class="stats-bar" style="text-align: center; margin-bottom: 20px; color: #ddd; opacity: 0.8;">
+            <span>Total Records: <strong>{{ akas|length }}</strong></span>
+        </div>
+
+        {% if akas %}
         <div class="akas-grid">
             {% for aka in akas %}
             <div class="aka-card">
                 <div class="aka-header">
                     <h3>{{ aka.title }}</h3>
-                    <span class="aka-id">Region: {{ aka.region if aka.region else 'Global' }}</span>
+                    <span class="aka-id">{{ aka.region if aka.region else 'Global' }}</span>
                 </div>
                 
                 <div class="aka-info">
@@ -29,22 +42,32 @@
                     
                     <div class="info-row">
                         <span class="label">Language:</span>
-                        <span class="value lang-tag">{{ aka.language if aka.language else 'N/A' }}</span>
+                        <span class="value">{{ aka.language if aka.language else 'N/A' }}</span>
                     </div>
-                </div>
-                
-                <div class="aka-actions">
-                    <a href="{{ url_for('akas_details_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-view">
-                        View Full Details →
-                    </a>
+
+                    <div class="info-row">
+                        <span class="label">Type:</span>
+                        <span class="value">{{ aka.types if aka.types else 'Standard' }}</span>
+                    </div>
+
+                    <div class="aka-actions">
+                        <a href="{{ url_for('akas_details_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-view">
+                            View Details →
+                        </a>
+                        <form action="{{ url_for('delete_aka_page', title_id=aka.titleId, ordering=aka.ordering) }}" method="POST" onsubmit="return confirm('Bu kaydı silmek istediğine emin misin?');" style="margin: 0;">
+                            <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; height: 100%;">
+                                Sil 🗑️
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-
-        {% if akas|length == 0 %}
-        <div class="empty-state">
-            <p>📭 No alternate titles found in the database.</p>
+        {% else %}
+        <div style="text-align: center; padding: 50px; color: #aaa;">
+            <h2>No Alternate Titles Found</h2>
+            <p>Start by adding some new records!</p>
         </div>
         {% endif %}
     </div>

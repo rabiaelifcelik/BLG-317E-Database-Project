@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block title %}Edit Alternate Title{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/akas.css"/>
+{% endblock %}
+
+{% block content %}
+    <div class="akas-container">
+        
+        <div class="header-container" style="flex-direction: column; align-items: stretch; text-align: center;">
+            <div>
+                <h1 style="justify-content: center;"><i class="fas fa-edit"></i> Edit Alternate Title</h1>
+                <p class="subtitle" style="color: white; margin-top: 5px;">Update localization details</p>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="{{ url_for('akas_details_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-view" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                    <i class="fas fa-arrow-left"></i> Back to Details
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="{{ url_for('aka_edit_page', title_id=aka.titleId, ordering=aka.ordering) }}" method="post">
+                
+                <div class="form-group">
+                    <label for="title_id">Title ID</label>
+                    <input type="text" id="title_id" name="title_id" value="{{ aka.titleId }}" readonly style="opacity: 0.7; cursor: not-allowed;">
+                    <small>Cannot be changed (Primary Key)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="ordering">Ordering</label>
+                    <input type="number" id="ordering" name="ordering" value="{{ aka.ordering }}" readonly style="opacity: 0.7; cursor: not-allowed;">
+                    <small>Cannot be changed (Primary Key)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required value="{{ aka.title }}">
+                    <small>The localized title text</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="region">Region Code</label>
+                    <input type="text" id="region" name="region" value="{{ aka.region if aka.region else '' }}" placeholder="e.g., US, TR">
+                    <small>ISO Region code</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="language">Language</label>
+                    <input type="text" id="language" name="language" value="{{ aka.language if aka.language else '' }}" placeholder="e.g., en, tr">
+                    <small>ISO Language code</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="types">Types</label>
+                    <input type="text" id="types" name="types" value="{{ aka.types if aka.types else '' }}" placeholder="e.g., imdbDisplay">
+                    <small>Attributes types</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="attributes">Attributes</label>
+                    <input type="text" id="attributes" name="attributes" value="{{ aka.attributes if aka.attributes else '' }}" placeholder="e.g., video title">
+                    <small>Additional attributes</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_original_title">Is Original?</label>
+                    <select id="is_original_title" name="is_original_title">
+                        <option value="1" {% if aka.is_original_title %}selected{% endif %}>Yes</option>
+                        <option value="0" {% if not aka.is_original_title %}selected{% endif %}>No</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="form-submit-btn">
+                    💾 Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

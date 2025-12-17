@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% block title %}Principals Statistics{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/principals.css"/>
+{% endblock %}
+{% block content %}
+    
+    <div class="principals-container">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-chart-bar"></i> Principals Statistics</h1>
+                <p class="page-subtitle">Comprehensive analysis of cast and crew by category</p>
+            </div>
+            <a href="{{ url_for('principals_page') }}" class="btn-secondary">
+                ← Back to Principals List
+            </a>
+        </div>
+
+        {% if stats %}
+        <div class="stats-info-box" style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+            <h3 style="color: white; margin-top: 0;">📊 Query Details:</h3>
+            <ul style="color: white; line-height: 1.8;">
+                <li><strong>Complex Join:</strong> 4 tables joined (principals, titles, ratings, people)</li>
+                <li><strong>Nested Query:</strong> Subquery to find most active person per category</li>
+                <li><strong>Aggregations:</strong> COUNT, AVG, GROUP_CONCAT with GROUP BY category</li>
+                <li><strong>Left Joins:</strong> Preserves all principals even without matching titles/ratings</li>
+            </ul>
+        </div>
+
+        <div class="scrollable-content">
+            <table class="principals-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-tag"></i> Category</th>
+                        <th><i class="fas fa-users"></i> Total Principals</th>
+                        <th><i class="fas fa-film"></i> Total Titles</th>
+                        <th><i class="fas fa-user-friends"></i> Unique People</th>
+                        <th><i class="fas fa-star"></i> Avg Rating</th>
+                        <th><i class="fas fa-crown"></i> Most Active Person</th>
+                        <th><i class="fas fa-theater-masks"></i> Genres</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for stat in stats %}
+                    <tr>
+                        <td>
+                            <span class="category-badge category-{{ stat.category }}">
+                                {{ stat.category }}
+                            </span>
+                        </td>
+                        <td><strong>{{ stat.total_principals }}</strong></td>
+                        <td>{{ stat.total_titles }}</td>
+                        <td>{{ stat.total_people }}</td>
+                        <td>
+                            {% if stat.avg_title_rating %}
+                                <span style="color: #ffd700;">
+                                    ⭐ {{ "%.2f"|format(stat.avg_title_rating) }}
+                                </span>
+                            {% else %}
+                                <span style="color: #999;">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="person-name">
+                                {{ stat.most_active_person if stat.most_active_person else 'N/A' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-size: 12px; color: #ddd;">
+                                {% if stat.all_genres %}
+                                    {{ stat.all_genres[:80] }}{% if stat.all_genres|length > 80 %}...{% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px;">
+            <div style="background: rgba(103, 126, 234, 0.3); padding: 20px; border-radius: 10px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 32px;">{{ stats|length }}</h3>
+                <p style="color: #ddd; margin: 5px 0 0 0;">Categories</p>
+            </div>
+            <div style="background: rgba(234, 103, 126, 0.3); padding: 20px; border-radius: 10px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 32px;">
+                    {{ stats|sum(attribute='total_principals') }}
+                </h3>
+                <p style="color: #ddd; margin: 5px 0 0 0;">Total Records</p>
+            </div>
+            <div style="background: rgba(103, 234, 126, 0.3); padding: 20px; border-radius: 10px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 32px;">
+                    {{ stats|sum(attribute='total_people') }}
+                </h3>
+                <p style="color: #ddd; margin: 5px 0 0 0;">Unique People</p>
+            </div>
+            <div style="background: rgba(234, 203, 103, 0.3); padding: 20px; border-radius: 10px; text-align: center;">
+                <h3 style="color: white; margin: 0; font-size: 32px;">
+                    {{ stats|sum(attribute='total_titles') }}
+                </h3>
+                <p style="color: #ddd; margin: 5px 0 0 0;">Total Titles</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-chart-line" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;"></i>
+            <h2>No Statistics Available</h2>
+            <p>Add some principals to see the statistics!</p>
+        </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
