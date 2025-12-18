@@ -522,27 +522,38 @@ class Database:
             cursor.execute(query)
             stats = cursor.fetchall()
         return stats
-    def get_ratings_list(self):
+    def get_ratings_list(self, min_rating=None):
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass
 
         with connection.cursor() as cursor:
-            # Revert to LEFT JOIN to fetch the actual title name
-            query = """
+            # 1. Temel Sorgu (Henüz LIMIT veya WHERE yok)
+            base_query = """
                 SELECT 
                     r.rating_id,
-                    r.title_id,      /* <--- BURAYI DÜZELTİN (r.titleId yerine r.title_id) */
+                    r.title_id,
                     r.average_rating,
                     r.num_votes,
                     t.primaryTitle 
                 FROM ratings r
                 LEFT JOIN titles t ON r.title_id = t.tconst
-                LIMIT 200;
             """
-            cursor.execute(query)
+            
+            # 2. Karar Anı: Filtre var mı?
+            if min_rating is not None:
+                # DİKKAT: SQL'de sıra şöyledir: WHERE -> ORDER BY -> LIMIT
+                # O yüzden önce WHERE ekliyoruz, sonuna LIMIT yapıştırıyoruz.
+                full_query = base_query + " WHERE r.average_rating >= %s ORDER BY r.num_votes DESC LIMIT 200"
+                
+                # Tek elemanlı tuple kuralı: (min_rating, ) virgül şart!
+                cursor.execute(full_query, (min_rating,))
+            else:
+                # Filtre yoksa direkt LIMIT ekle
+                full_query = base_query + " LIMIT 200"
+                cursor.execute(full_query)
+            
             ratings_list = cursor.fetchall()
         return ratings_list
 

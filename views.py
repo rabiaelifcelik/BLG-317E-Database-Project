@@ -277,12 +277,27 @@ def akas_stats_page():
     return render_template("akas_statistics.html", stats=stats)
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
+    min_val = request.args.get("min")
+    
+    # DEBUG: Terminale yazdıralım bakalım veri geliyor mu?
+    print(f"--- FİLTRELEME İSTEĞİ: {min_val} ---")
+    
+    # Gelen veri boş mu kontrol et, doluysa sayıya çevir
+    if min_val and min_val.strip() != "":
+        try:
+            min_val = float(min_val)
+        except ValueError:
+            min_val = None
+    else:
+        min_val = None
+
     db = current_app.config["db"]
-    ratings = db.get_ratings_list() # Use the new list method
+    ratings = db.get_ratings_list(min_rating=min_val) # Use the new list method
     
     return render_template(
         "ratings_list.html",
-        ratings=ratings
+        ratings=ratings,
+        current_min=min_val
     )
 
 # NEW VIEW FUNCTION: ratings_details_page (For the details of a single rating entry)
