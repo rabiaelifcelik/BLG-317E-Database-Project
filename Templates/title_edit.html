@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+{% block title %}Edit Title{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/titles.css"/>
+{% endblock %}
+{% block content %}
+    <div style="text-align: left; margin-bottom: 5px; margin-left:30px">
+            <a href="{{ url_for('titles_page') }}" class="btn-secondary">
+                ← Back to Titles List
+            </a>
+    </div>
+    <div class="titles-container">
+        <div style="flex-direction: column; align-items: stretch; margin-bottom:25px;">
+            <div style="text-align: center;">
+                <h1><i class="fas fa-edit"></i> Edit title</h1>
+                <p class="page-subtitle">Update content information</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="{{ url_for('title_edit_page', title_id=title.tconst) }}" method="post">
+
+                <div class="form-group">
+                    <label for="primary_title">Primary Title</label>
+                    <input type="text" id="primary_title" name="primary_title" required 
+                           placeholder="e.g., Catch Me If You Can" min="1" value="{{ title.primaryTitle }}">
+                    <small>Write the primary title of the content</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="original_title">Original Title</label>
+                    <input type="text" id="original_title" name="original_title" required 
+                           placeholder="e.g., Catch Me If You Can" value="{{ title.original_title }}">
+                    <small>Write the original title of the content</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-div">
+                    <label for="title_type">Title Type</label></div>
+                    <div>
+                        <select id="title_type" name="title_type" required>
+                            <option value="movie" selected>Movie</option>
+                            <option value="movie">Movie</option> 
+                            <option value="short">Short</option>
+                            <option value="tvShort">TV Short</option>
+                            <option value="tvMovie">TV Movie</option>
+                            <option value="tvEpisode">TV Episode</option>
+                            <option value="tvSeries">TV Series</option>
+                            <option value="tvMiniSeries">TV Mini Series</option>
+                            <option value="tvSpecial">TV Special</option>
+                            <option value="video">Video</option>
+                            <option value="videoGame">Video Game</option>
+                            <option value="tvPilot">Tv Pilot</option>
+                        </select>
+                    </div>
+                    <small >The type of the title</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="is_adult">Adult Content</label>
+                    
+                    <input type="checkbox" id="is_adult" name="is_adult" 
+                           value="1" {{ 'checked' if title.isAdult else '' }}>
+                    <small>Select if the content is not suitable for children</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="start_year">Start Year</label>
+                    <input id="start_year" name="start_year" type="month"
+                            value="{{title.startYear}}">
+                    <small>Change the start year of the content if needed.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="end_year">End Year</label>
+                    <input id="end_year" name="end_year" type="month"
+                            value="{{title.endYear}}">
+                    <small>Change/add the end year of the content if needed, otherwise, leave empty.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="runtime_minutes">Runtime Minutes</label>
+                    <input id="runtime_minutes" name="runtime_minutes" type="number" min="1"
+                            value="{{title.runtimeMinutes}}">
+                    <small>Write the runtime minutes of the content.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="genres">Genres</label>
+                    <input id="genres" name="genres" type="text" 
+                            value="{{title.genres}}">
+                    <small>Write the genres of the content.</small>
+                </div>
+
+
+                
+                <button type="submit" class="form-submit-btn">
+                    💾 Save Changes
+                </button>
+            </form>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-top: 20px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            <h3 style="color: white; margin-top: 0;">💡 Tips:</h3>
+            <ul style="color: white; line-height: 1.8;">
+                <li>Fields marked with * are required</li>
+                <li>Title ID and Person ID must exist in the database</li>
+                <li>Changes will be saved immediately upon submission</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("category").value = "{{ title.titleType|lower }}";
+    </script>
+{% endblock %}

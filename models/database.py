@@ -52,6 +52,7 @@ class Database:
                 t.titleType,
                 t.startYear,
                 t.endYear,
+                t.isAdult,
                 t.runtimeMinutes,
                 t.genres
 
@@ -166,6 +167,37 @@ class Database:
             connection.commit()
         
         return new_id
+    
+    def delete_title(self, title_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                DELETE FROM titles
+                WHERE tconst = %s
+            """
+            cursor.execute(query, (title_id))
+            connection.commit()
+        return True
+    
+    def update_title(self, titleId, primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE titles 
+                SET  primaryTitle = %s, originalTitle = %s, titleType = %s, isAdult = %s, startYear = %s, endYear = %s, runtimeMinutes = %s, genres = %s
+                WHERE tconst = %s
+            """
+            cursor.execute(query, (primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres, titleId))
+            connection.commit()
+        return True
 
 
 

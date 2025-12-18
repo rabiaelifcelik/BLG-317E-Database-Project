@@ -56,6 +56,36 @@ def title_add_page():
         
         return redirect(url_for('titles_page'))
 
+def title_edit_page(title_id):
+    db = current_app.config["db"]
+    
+    if request.method == "GET":
+        title = db.get_title(title_id)
+        print(title)
+        if title == None:
+            abort(404)
+        return render_template("title_edit.html", title=title)
+    else:
+        form_primary_title = request.form["primary_title"]
+        form_original_title = request.form["original_title"]
+        form_title_type = request.form["title_type"]
+        form_is_adult = request.form.get('is_adult') == '1'
+        print("Form result ", request.form.get('is_adult'))
+        form_start_year = request.form["start_year"]
+        form_end_year = request.form.get("end_year", "")
+        form_runtime_minutes = request.form.get("runtime_minutes", "0")
+        form_genres = request.form["genres"]
+
+        db.update_title(title_id, form_primary_title, form_original_title, form_title_type, form_is_adult, 
+                            form_start_year, form_end_year, form_runtime_minutes, form_genres)
+        
+        return redirect(url_for('title_page', title_id=title_id))
+    
+def title_delete_page(title_id):
+    db = current_app.config["db"]
+    db.delete_title(title_id)
+    return redirect(url_for('titles_page'))
+    
 def cast_page():
     return render_template('cast.html')
 
