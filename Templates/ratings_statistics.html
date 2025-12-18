@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+{% block title %}Ultimate Ratings Analysis{% endblock %}
+
+{% block page_css %}
+<style>
+    .stats-container {
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #f1f1f1;
+        padding-bottom: 10px;
+    }
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    .stats-table th, .stats-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    .stats-table th {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    .stats-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .tag-rating {
+        color: #f39c12;
+        font-weight: bold;
+        background: #fff3cd;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    .tag-country {
+        background: #27ae60;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+    }
+    .text-muted {
+        color: #7f8c8d;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-container">
+    <div class="stats-header">
+        <div>
+            <h1 style="color: #2c3e50; margin: 0;"><i class="fas fa-chart-pie"></i> Top 20 Movies Analysis</h1>
+            <p style="color: #7f8c8d; margin: 5px 0 0 0;">
+                Data collected from <strong>5 Tables</strong>: Ratings, Titles, Crew, Akas, Principals
+            </p>
+        </div>
+        <a href="{{ url_for('ratings_list_page') }}" style="text-decoration: none; background: #95a5a6; color: white; padding: 8px 15px; border-radius: 5px;">
+            ← Back to Ratings
+        </a>
+    </div>
+
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Movie Title</th>
+                <th style="width: 10%;">Rating</th>
+                <th style="width: 10%;">Votes</th>
+                <th style="width: 20%;">Director (Crew)</th>
+                <th style="width: 25%;">Top Cast (Principals)</th> <th style="width: 10%;">Global Reach</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for stat in stats %}
+            <tr>
+                <td style="font-weight: bold; color: #2980b9;">
+                    {{ stat.primaryTitle }}
+                </td>
+
+                <td>
+                    <span class="tag-rating">★ {{ stat.average_rating }}</span>
+                </td>
+                <td class="text-muted">
+                    {{ stat.num_votes }}
+                </td>
+
+                <td class="text-muted">
+                    <i class="fas fa-video"></i> 
+                    {{ stat.directors[:20] + '...' if stat.directors and stat.directors|length > 20 else (stat.directors if stat.directors else 'Unknown') }}
+                </td>
+
+                <td style="font-size: 0.9em; color: #34495e;">
+                    {% if stat.top_cast %}
+                        <i class="fas fa-user-friends"></i> 
+                        {{ stat.top_cast[:60] }}{{ '...' if stat.top_cast|length > 60 else '' }}
+                    {% else %}
+                        <span style="color: #bdc3c7;">No Cast Info</span>
+                    {% endif %}
+                </td>
+
+                <td style="text-align: center;">
+                    <span class="tag-country">
+                        {{ stat.global_reach }} Regions
+                    </span>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">
+                    No statistics available right now.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

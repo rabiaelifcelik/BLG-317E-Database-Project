@@ -377,3 +377,12 @@ def delete_rating_page(rating_id):
         return redirect(url_for("ratings_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
+def ratings_stats_page():
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # O yazdığımız 5 tablolu fonksiyonu çağır
+    stats = db.get_ratings_statistics()
+    
+    # HTML sayfasına gönder
+    return render_template("ratings_statistics.html", stats=stats)

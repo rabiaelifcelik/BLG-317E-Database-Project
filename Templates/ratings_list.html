@@ -7,32 +7,46 @@
 {% block content %}
     <div class="ratings-container">
         
-        <div class="header-container">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <div>
-                <h1><i class="fas fa-star"></i> Ratings Catalog</h1>
-                <p class="subtitle">Top rated titles by number of votes</p>
+                <h1 style="margin: 0; color: #f1c40f;"><i class="fas fa-star"></i> Ratings Catalog</h1>
+                <p class="subtitle" style="margin: 5px 0 0 0; color: #bdc3c7;">Top rated titles by number of votes</p>
             </div>
-            <a href="{{ url_for('rating_add_page') }}" class="btn-add">
-                <i class="fas fa-plus"></i>
-                <span>Add New Rating!</span>
-            </a>
-            <form action="{{ url_for('ratings_list_page') }}" method="get" style="display: flex; gap: 10px; align-items: center; background: #fff; padding: 5px 15px; border-radius: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <label for="min" style="color: #666; font-weight: bold;">Min Rating:</label>
-                <input type="number" name="min" id="min" step="0.1" min="0" max="10" 
-                       value="{{ current_min if current_min else '' }}" 
-                       placeholder="e.g. 7.5"
-                       style="width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 5px;">
-                <button type="submit" class="btn-add" style="background-color: #3498db; padding: 6px 15px; font-size: 14px;">
-                    <i class="fas fa-filter"></i> Filter
-                </button>
-                {% if current_min %}
-                <a href="{{ url_for('ratings_list_page') }}" style="color: #e74c3c; text-decoration: none; font-size: 14px;">
-                    <i class="fas fa-times"></i> Clear
-                </a>
-                {% endif %}
-            </form>
-        </div>
 
+            <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+                
+                <a href="{{ url_for('rating_add_page') }}" class="btn-add" 
+                style="background: #f39c12; color: white; padding: 0 20px; text-decoration: none; border-radius: 20px; height: 40px; display: flex; align-items: center; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    + Add New
+                </a>
+
+                <a href="{{ url_for('ratings_stats_page') }}" class="btn-stats" 
+                style="background: #8e44ad; color: white; padding: 0 20px; text-decoration: none; border-radius: 20px; height: 40px; display: flex; align-items: center; gap: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i class="fas fa-chart-pie"></i> Stats
+                </a>
+
+                <form action="{{ url_for('ratings_list_page') }}" method="get" 
+                    style="display: flex; align-items: center; background: white; padding: 0 10px; border-radius: 25px; height: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    
+                    <span style="color: #7f8c8d; font-weight: bold; font-size: 14px; margin-right: 5px;">Min:</span>
+                    
+                    <input type="number" name="min" step="0.1" min="0" max="10" 
+                        value="{{ current_min if current_min else '' }}" 
+                        placeholder="7.5"
+                        style="width: 50px; border: none; background: #f5f6fa; padding: 5px; border-radius: 5px; text-align: center; font-weight: bold; color: #2c3e50; outline: none;">
+                    
+                    <button type="submit" style="background: #f1c40f; border: none; width: 30px; height: 30px; border-radius: 50%; margin-left: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #2c3e50;">
+                        <i class="fas fa-filter" style="font-size: 12px;"></i>
+                    </button>
+
+                    {% if current_min %}
+                    <a href="{{ url_for('ratings_list_page') }}" style="color: #e74c3c; margin-left: 10px; text-decoration: none;">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
         <div class="stats-bar" style="text-align: center; margin-bottom: 20px; color: #ddd; opacity: 0.8;">
             <span>Total Ratings Displayed: <strong>{{ ratings|length }}</strong></span>
         </div>

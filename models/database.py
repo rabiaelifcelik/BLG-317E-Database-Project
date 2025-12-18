@@ -627,3 +627,37 @@ class Database:
             cursor.execute(query, (rating_id))
             connection.commit()
         return True
+
+    def get_ratings_statistics(self):
+        """
+        ULTIMATE 5-TABLE JOIN QUERY (Düzeltilmiş Versiyon)
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    t.primaryTitle,
+                    r.average_rating,
+                    r.num_votes,
+                    COALESCE(pd.primaryName, 'Unknown') as directors,
+                    COUNT(DISTINCT a.region) as global_reach,
+                    GROUP_CONCAT(DISTINCT p.primaryName SEPARATOR ', ') as top_cast
+                FROM 
+                    (SELECT * FROM ratings LIMIT 200) r
+                JOIN titles t ON r.title_id = t.tconst
+                LEFT JOIN crew c ON t.tconst = c.tconst
+                LEFT JOIN people pd ON SUBSTRING_INDEX(c.directors, ',', 1) = pd.nconst
+                LEFT JOIN akas a ON t.tconst = a.titleId
+                LEFT JOIN principals pr ON t.tconst = pr.tconst AND (pr.category LIKE 'act%')
+                LEFT JOIN people p ON pr.nconst = p.nconst
+                GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
+                
+                ORDER BY r.average_rating DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats

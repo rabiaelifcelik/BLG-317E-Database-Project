@@ -53,7 +53,7 @@ if __name__ == '__main__':
     app.add_url_rule("/ratings/add", view_func=views.rating_add_page, methods=["GET", "POST"])
     app.add_url_rule("/ratings/edit/<int:rating_id>", view_func=views.rating_edit_page, methods=["GET", "POST"])
     app.add_url_rule("/akas/delete/<rating_id>", view_func=views.delete_rating_page, methods=["POST"])
-
+    app.add_url_rule("/ratings/stats", view_func=views.ratings_stats_page)
     # ... rest of your routes ...
 
     app.run(debug=True, port=5000)
