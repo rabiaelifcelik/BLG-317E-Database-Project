@@ -395,24 +395,36 @@ class Database:
 
 
 # --- Add this method to the Database class in models/database.py ---
-
-    def get_akas_list(self):
+    def get_akas_list(self, search_query=None):
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass
 
-        """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
-            # Join with titles to show the primary title for context
-            query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
-                FROM akas a
-                JOIN titles t ON a.titleId = t.tconst
-                LIMIT 200;
-            """
-            cursor.execute(query)
+            if search_query:
+                # DURUM 1: Kullanıcı Arama Yaptıysa (Mecburen sıralayıp arayacağız)
+                # İpucu: Az önceki 'CREATE INDEX' kodunu çalıştırdıysan burası da hızlı olur.
+                query = (
+                    "SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle "
+                    "FROM akas a "
+                    "JOIN titles t ON a.titleId = t.tconst "
+                    "WHERE a.region LIKE %s "
+                    "LIMIT 200"
+                )
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param,))
+            else:
+                # DURUM 2: Sayfa İlk Açılıyor (Arama Yok)
+                # HIZ HİLESİ: 'ORDER BY' yok! Sadece ilk bulduğun 200 taneyi al ve çık.
+                # Ayrıca önce 200 satırı 'akas'tan alıp SONRA 'titles' ile birleştiriyoruz.
+                query = (
+                    "SELECT sub_a.titleId, sub_a.ordering, sub_a.title, sub_a.region, sub_a.language, t.primaryTitle "
+                    "FROM (SELECT * FROM akas LIMIT 200) sub_a "
+                    "JOIN titles t ON sub_a.titleId = t.tconst"
+                )
+                cursor.execute(query)
+            
             akas_list = cursor.fetchall()
         return akas_list
 
@@ -556,7 +568,6 @@ class Database:
             
             ratings_list = cursor.fetchall()
         return ratings_list
-
     def get_single_rating(self, rating_id):
         try:
             connection.ping(reconnect=True)

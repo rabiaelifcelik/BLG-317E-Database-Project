@@ -155,12 +155,16 @@ def person_add_page():
 
 
 def akas_list_page():
+
+    search_query = request.args.get("q")
+
     db = current_app.config["db"]
-    akas = db.get_akas_list() # Use the new list method
+    akas = db.get_akas_list(search_query=search_query) # Use the new list method
     
     return render_template(
         "akas_list.html",
-        akas=akas
+        akas=akas,
+        search_query=search_query
     )
 
 # NEW VIEW FUNCTION: akas_details_page (For the details of a single alternate title)
