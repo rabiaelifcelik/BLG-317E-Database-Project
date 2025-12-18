@@ -4,10 +4,12 @@
 <link rel="stylesheet" href="/static/titles.css"/>
 {% endblock %}
 {% block content %}
-        <h1 class="title">Titles</h1>
-
-        <div class="stats-bar">
-                <span>Loaded Titles: <strong>{{ titles|length }}</strong></span>
+        <div class="header-container">
+                <h1 class="title"><i class="fas fa-star"></i>  Titles</h1>
+                <a href="{{ url_for('title_add_page') }}" class="btn-add">
+                        <i class="fas fa-plus"></i>
+                        <span>Add New Titles!</span>
+                </a>
         </div>
         
         {% if titles %}

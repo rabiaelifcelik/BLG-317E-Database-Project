@@ -7,6 +7,37 @@
     padding: 20px;
 }
 
+.header-container{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-container {
+    background: rgba(255, 255, 255, 0.2); 
+    padding: 20px; 
+    border-radius: 10px; 
+    margin-top: 20px; 
+    max-width: 500px; 
+    margin-left: auto; 
+    margin-right: auto;
+}
+
+.info-container ul {
+    padding-left: 20px; /* veya 1rem */
+    margin-left: 0;
+}
+
+.info-container h3 {
+    margin-bottom:10px;
+}
+
 .titles-container .subtitle {
     color: #ccc;
     font-size: 1.1em;
@@ -27,6 +58,8 @@
     background: rgba(129, 137, 255, 0.3);
     box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
 }
 
 .title-card:hover {
@@ -37,8 +70,9 @@
 .title-header {
     display: flex;
     justify-content: space-between;
+    min-height: 80px;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     border-bottom: 2px solid #007bff;
     padding-bottom: 10px;
 }
@@ -60,6 +94,9 @@
 
 .title-info {
     margin: 15px 0;
+    flex: 1;  /* bilgi bölümünün kalan alanı kaplamasını sağlar */
+    display: flex;
+    flex-direction: column;
 }
 
 .info-row {
@@ -97,8 +134,16 @@
 }
 
 .title-actions {
-    margin-top: 15px;
-    text-align: center;
+    margin-top: auto;   /* butonu kartın en altına iter */
+    padding-top: 15px;
+    display: flex;
+    justify-content: center;
+
+}
+
+.title-actions .btn-view {
+    display: inline-block;
+    justify-content: center;
 }
 
 .title-load {
@@ -106,6 +151,9 @@
     text-align: center;
     align-self: center;
     align-items: center;
+}
+.movie-table {
+    text-align: left;
 }
 
 .btn-view {
@@ -116,6 +164,28 @@
     text-decoration: none;
     border-radius: 5px;
     transition: background 0.3s;
+}
+
+.btn-submit {
+    display: inline-block;
+    box-shadow: none;
+    border-width: 0 0 0 0;
+    padding: 10px 20px;
+    background:  #ffd700;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.btn-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-submit:hover {
+    background:  #eebe00;
 }
 
 .btn-view:hover {
@@ -132,6 +202,21 @@
 .back-nav {
     margin-bottom: 20px;
 }
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
 
 .btn-back {
     display: inline-block;
@@ -248,4 +333,40 @@
 
 .movie-table {
     text-align: left;
+}
+small {
+    color:white;
+    font-size: 12px;
+}
+
+.form-group{
+    display: flex;
+    justify-content:flex-start;
+    align-items: center;
+    background-color:rgba(61, 63, 157, 0.6);
+    border-radius: 8px;
+    margin:10px;
+    padding:10px;
+}
+
+.label-div {
+    width:200px;
+}
+
+.input-div {
+    width:220px;
+    margin-right: 20px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+input, select {
+    margin-left:20px;
+    margin-right:10px;
+    background-color: rgba(255,255,255,0.1);
+    border: rgba(0,0,0,0.3);
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    width: 180px;
 }

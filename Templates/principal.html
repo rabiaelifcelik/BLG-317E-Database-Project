@@ -6,28 +6,40 @@
 {% block content %}
     
     <div class="principals-container">
-        <h1 class="principals-title">👤 Principal Details</h1>
-
-        <div style="text-align: center; margin-bottom: 20px;">
-            <a href="{{ url_for('principals_page') }}" class="btn-secondary">
-                ← Back to Principals List
-            </a>
+        <div class="page-header" style="flex-direction: column; align-items: stretch;">
+            <div style="text-align: center;">
+                <h1><i class="fas fa-user-circle"></i> Principal Details</h1>
+                <p class="page-subtitle">Complete information about this cast or crew member</p>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; align-items: center;">
+                <a href="{{ url_for('principals_page') }}" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a href="{{ url_for('principal_edit_page', principal_id=principal.principal_id) }}" class="btn-edit">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <form action="{{ url_for('principal_delete_page', principal_id=principal.principal_id) }}" method="post" style="display: inline-flex; margin: 0; padding: 0;">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete this principal? This action cannot be undone.');" class="btn-delete">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="detail-card">
             <table>
                 <tr>
-                    <th>🔢 Principal ID:</th>
-                    <td>{{ principal.principal_id }}</td>
+                    <th><i class="fas fa-hashtag"></i> Principal ID:</th>
+                    <td><strong>{{ principal.principal_id }}</strong></td>
                 </tr>
                 <tr>
-                    <th>👤 Person Name:</th>
+                    <th><i class="fas fa-user"></i> Person Name:</th>
                     <td>
-                        <span class="person-name">
+                        <span class="person-name" style="font-size: 16px;">
                             {{ principal.person_name if principal.person_name else principal.nconst }}
                         </span>
                         {% if principal.person_birth_year %}
-                            <span style="color: #666; font-size: 13px;">
+                            <span style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-left: 8px;">
                                 (Born: {{ principal.person_birth_year }})
                             </span>
                         {% endif %}
@@ -35,29 +47,29 @@
                 </tr>
                 {% if principal.person_profession %}
                 <tr>
-                    <th>💼 Known For:</th>
+                    <th><i class="fas fa-briefcase"></i> Known For:</th>
                     <td>{{ principal.person_profession }}</td>
                 </tr>
                 {% endif %}
                 <tr>
-                    <th>🎬 Title:</th>
+                    <th><i class="fas fa-film"></i> Title:</th>
                     <td>
-                        <a href="{{ url_for('title_page', title_id=principal.tconst) }}" style="color: #667eea; font-weight: bold;">
+                        <a href="{{ url_for('title_page', title_id=principal.tconst) }}" class="title-link">
                             {{ principal.title_name if principal.title_name else principal.tconst }}
                         </a>
                         {% if principal.title_year %}
-                            <span style="color: #666; font-size: 13px;">
+                            <span style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-left: 8px;">
                                 ({{ principal.title_year }})
                             </span>
                         {% endif %}
                     </td>
                 </tr>
                 <tr>
-                    <th>📊 Ordering:</th>
-                    <td>{{ principal.ordering }}</td>
+                    <th><i class="fas fa-sort-numeric-down"></i> Billing Order:</th>
+                    <td><span style="background: rgba(255, 215, 0, 0.2); padding: 4px 12px; border-radius: 6px; font-weight: 600;">{{ principal.ordering }}</span></td>
                 </tr>
                 <tr>
-                    <th>🎭 Category:</th>
+                    <th><i class="fas fa-theater-masks"></i> Category:</th>
                     <td>
                         <span class="category-badge category-{{ principal.category }}">
                             {{ principal.category }}
@@ -66,25 +78,25 @@
                 </tr>
                 {% if principal.job %}
                 <tr>
-                    <th>💼 Job Title:</th>
+                    <th><i class="fas fa-id-badge"></i> Job Title:</th>
                     <td>{{ principal.job }}</td>
                 </tr>
                 {% endif %}
                 {% if principal.characters %}
                 <tr>
-                    <th>🎪 Characters:</th>
+                    <th><i class="fas fa-masks-theater"></i> Characters:</th>
                     <td>
-                        <div style="color: #444; line-height: 1.6;">
+                        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; font-style: italic;">
                             {{ principal.characters }}
                         </div>
                     </td>
                 </tr>
                 {% endif %}
                 <tr>
-                    <th>🔗 IDs:</th>
-                    <td style="font-size: 12px; color: #666;">
-                        <strong>Person ID:</strong> {{ principal.nconst }}<br>
-                        <strong>Title ID:</strong> {{ principal.tconst }}
+                    <th><i class="fas fa-link"></i> Reference IDs:</th>
+                    <td style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">
+                        <strong>Person:</strong> {{ principal.nconst }}<br>
+                        <strong>Title:</strong> {{ principal.tconst }}
                     </td>
                 </tr>
             </table>

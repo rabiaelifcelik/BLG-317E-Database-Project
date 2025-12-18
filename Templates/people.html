@@ -6,11 +6,37 @@
 
 {% block content %}
     <div class="people-container">
-        <h1>🎬 People Database</h1>
-        <p class="subtitle">Explore actors, directors, and industry professionals</p>
+        <div class="header-section">
+            <div>
+                <h1>🎬 People</h1>
+                <p class="subtitle">Discover and explore talented professionals across the entertainment industry</p>
+            </div>
+            <a href="{{ url_for('person_add_page') }}" class="btn-add">
+                <i class="fas fa-user-plus"></i> Add New Person
+            </a>
+        </div>
+
+        <div class="search-section">
+            <form method="GET" action="{{ url_for('people_page') }}" class="search-form">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="🔍 Search by name..." 
+                    value="{{ search_query if search_query else '' }}"
+                    class="search-input"
+                >
+                <button type="submit" class="btn-search">🔍 Search</button>
+                {% if search_query %}
+                <a href="{{ url_for('people_page') }}" class="btn-clear">✖ Clear</a>
+                {% endif %}
+            </form>
+        </div>
 
         <div class="stats-bar">
             <span>Total People: <strong>{{ people|length }}</strong></span>
+            {% if search_query %}
+            <span style="margin-left: 20px;">Searching for: <strong>"{{ search_query }}"</strong></span>
+            {% endif %}
         </div>
 
         <div class="people-grid">
@@ -40,11 +66,18 @@
                             {{ person.primaryProfession if person.primaryProfession else 'N/A' }}
                         </span>
                     </div>
+                    
+                    {% if person.most_known_title_name %}
+                    <div class="info-row">
+                        <span class="label">⭐ Most Known For:</span>
+                        <span class="value">{{ person.most_known_title_name }}</span>
+                    </div>
+                    {% endif %}
                 </div>
                 
                 <div class="person-actions">
                     <a href="{{ url_for('person_page', person_id=person.nconst) }}" class="btn-view">
-                        View Details →
+                        <i class="fas fa-info-circle"></i> View Details
                     </a>
                 </div>
             </div>
