@@ -155,12 +155,16 @@ def person_add_page():
 
 
 def akas_list_page():
+
+    search_query = request.args.get("q")
+
     db = current_app.config["db"]
-    akas = db.get_akas_list() # Use the new list method
+    akas = db.get_akas_list(search_query=search_query) # Use the new list method
     
     return render_template(
         "akas_list.html",
-        akas=akas
+        akas=akas,
+        search_query=search_query
     )
 
 # NEW VIEW FUNCTION: akas_details_page (For the details of a single alternate title)
@@ -184,14 +188,120 @@ def akas_details_page(title_id, ordering):
         aka=aka
     )
 
+def aka_add_page():
+    db = current_app.config["db"]
+    
+    if request.method == "GET":
+        return render_template("akas_add.html")
+    
+    elif request.method == "POST":
+        # Formdan verileri al
+        title_id = request.form.get("title_id")
+        ordering = request.form.get("ordering")
+        title = request.form.get("title")
+        region = request.form.get("region")
+        language = request.form.get("language")
+        types = request.form.get("types")
+        attributes = request.form.get("attributes")
+        is_original_title = request.form.get("is_original_title")
+        
+        # Tip dönüşümü: ordering'i int yap
+        try:
+            ordering = int(ordering)
+            is_original_title = int(is_original_title)
+        except ValueError:
+            # Hata mesajı gösterebilirsiniz
+            return "Hata: Ordering veya Is Original Title geçerli sayı değil.", 400
+
+        try:
+            db.add_aka(
+                title_id, 
+                ordering, 
+                title, 
+                region, 
+                language, 
+                types, 
+                attributes, 
+                is_original_title
+            )
+            # Başarılı olursa listeye yönlendir
+            return redirect(url_for("akas_list_page"))
+        except Exception as e:
+            # Foreign Key veya Primary Key hatası durumunda
+            return f"Error adding Alternate Title. Ensure Title ID exists and the Ordering ID is unique for that Title. Error: {str(e)}", 500
+def aka_edit_page(title_id, ordering):
+    db = current_app.config["db"]
+
+    if request.method == "GET":
+        # Mevcut veriyi çek ve forma gönder
+        aka = db.get_single_aka(title_id, ordering)
+        if not aka:
+            return "Aka record not found", 404
+        return render_template("akas_edit.html", aka=aka)
+
+    elif request.method == "POST":
+        # Form verilerini al
+        title = request.form.get("title")
+        region = request.form.get("region")
+        language = request.form.get("language")
+        types = request.form.get("types")
+        attributes = request.form.get("attributes")
+        is_original_title = request.form.get("is_original_title")
+
+        # Güncelleme işlemini yap
+        try:
+            db.update_aka(
+                title_id, 
+                ordering, 
+                title, 
+                region, 
+                language, 
+                types, 
+                attributes, 
+                int(is_original_title)
+            )
+            # Detay sayfasına geri yönlendir
+            return redirect(url_for('akas_details_page', title_id=title_id, ordering=ordering))
+        except Exception as e:
+            return f"Error updating record: {str(e)}", 500
+def delete_aka_page(title_id, ordering):
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # Silme fonksiyonunu çağır
+    try:
+        db.delete_aka(title_id, ordering)
+        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
+        return redirect(url_for("akas_list_page"))
+    except Exception as e:
+        return f"Silinirken hata oluştu: {e}"
+def akas_stats_page():
+    db = current_app.config["db"]
+    stats = db.get_akas_statistics()
+    return render_template("akas_statistics.html", stats=stats)
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
+    min_val = request.args.get("min")
+    
+    # DEBUG: Terminale yazdıralım bakalım veri geliyor mu?
+    print(f"--- FİLTRELEME İSTEĞİ: {min_val} ---")
+    
+    # Gelen veri boş mu kontrol et, doluysa sayıya çevir
+    if min_val and min_val.strip() != "":
+        try:
+            min_val = float(min_val)
+        except ValueError:
+            min_val = None
+    else:
+        min_val = None
+
     db = current_app.config["db"]
-    ratings = db.get_ratings_list() # Use the new list method
+    ratings = db.get_ratings_list(min_rating=min_val) # Use the new list method
     
     return render_template(
         "ratings_list.html",
-        ratings=ratings
+        ratings=ratings,
+        current_min=min_val
     )
 
 # NEW VIEW FUNCTION: ratings_details_page (For the details of a single rating entry)
@@ -233,3 +343,46 @@ def rating_add_page():
         except Exception as e:
             # In a real app, you would flash an error message here
             return f"Error adding rating. Ensure Title ID {title_id} exists. Error: {str(e)}"
+        
+def rating_edit_page(rating_id):
+    db = current_app.config["db"]
+
+    if request.method == "GET":
+        # Veriyi çek ve forma gönder
+        rating = db.get_single_rating(rating_id)
+        if not rating:
+            return "Rating record not found", 404
+        return render_template("ratings_edit.html", rating=rating)
+
+    elif request.method == "POST":
+        # Form verilerini al
+        average_rating = request.form.get("average_rating")
+        num_votes = request.form.get("num_votes")
+
+        try:
+            db.update_rating(rating_id, average_rating, num_votes)
+            # Detay sayfasına geri yönlendir
+            return redirect(url_for('ratings_details_page', rating_id=rating_id))
+        except Exception as e:
+            return f"Error updating rating: {str(e)}", 500
+        
+def delete_rating_page(rating_id):
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # Silme fonksiyonunu çağır
+    try:
+        db.delete_rating(rating_id)
+        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
+        return redirect(url_for("ratings_list_page"))
+    except Exception as e:
+        return f"Silinirken hata oluştu: {e}"
+def ratings_stats_page():
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # O yazdığımız 5 tablolu fonksiyonu çağır
+    stats = db.get_ratings_statistics()
+    
+    # HTML sayfasına gönder
+    return render_template("ratings_statistics.html", stats=stats)

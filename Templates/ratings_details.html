@@ -7,17 +7,27 @@
 
 {% block content %}
     <div class="rating-detail-container">
-        <div class="back-nav">
-            <a href="{{ url_for('ratings_list_page') }}" class="btn-back">← Back to Ratings List</a>
-        </div>
-
-        <div class="rating-header-section">
-            <div class="rating-avatar">
-                <span class="avatar-icon">📊</span>
+        
+        <div class="rating-header-section" style="flex-direction: column; align-items: center; text-align: center;">
+            
+            <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+                <div class="rating-avatar">
+                    <span class="avatar-icon">📊</span>
+                </div>
+                <div class="rating-title">
+                    <h1 style="margin: 0;">Rating Details for: {{ rating.primaryTitle }}</h1>
+                    <span class="rating-id-badge" style="margin-top: 5px; display: inline-block;">Entry ID: {{ rating.rating_id }}</span>
+                </div>
             </div>
-            <div class="rating-title">
-                <h1>Rating Details for: {{ rating.primaryTitle }}</h1>
-                <span class="rating-id-badge">Entry ID: {{ rating.rating_id }}</span>
+
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="{{ url_for('ratings_list_page') }}" class="btn-back">
+                    ← Back to Ratings List
+                </a>
+                
+                <a href="{{ url_for('rating_edit_page', rating_id=rating.rating_id) }}" class="btn-view" style="background: #4facfe;">
+                    <i class="fas fa-edit"></i> Edit Rating
+                </a>
             </div>
         </div>
 
@@ -42,7 +52,7 @@
                     <div class="info-item">
                         <span class="info-label">Title ID (tconst):</span>
                         <span class="info-value">
-                            <a href="{{ url_for('title_page', title_id=rating.title_id) }}">
+                            <a href="{{ url_for('title_page', title_id=rating.title_id) }}" style="color: #ffd700; text-decoration: none; font-weight: bold;">
                                 {{ rating.title_id }}
                             </a>
                         </span>

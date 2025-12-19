@@ -395,24 +395,36 @@ class Database:
 
 
 # --- Add this method to the Database class in models/database.py ---
-
-    def get_akas_list(self):
+    def get_akas_list(self, search_query=None):
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass
 
-        """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
-            # Join with titles to show the primary title for context
-            query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
-                FROM akas a
-                JOIN titles t ON a.titleId = t.tconst
-                LIMIT 200;
-            """
-            cursor.execute(query)
+            if search_query:
+                # DURUM 1: Kullanıcı Arama Yaptıysa (Mecburen sıralayıp arayacağız)
+                # İpucu: Az önceki 'CREATE INDEX' kodunu çalıştırdıysan burası da hızlı olur.
+                query = (
+                    "SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle "
+                    "FROM akas a "
+                    "JOIN titles t ON a.titleId = t.tconst "
+                    "WHERE a.region LIKE %s "
+                    "LIMIT 200"
+                )
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param,))
+            else:
+                # DURUM 2: Sayfa İlk Açılıyor (Arama Yok)
+                # HIZ HİLESİ: 'ORDER BY' yok! Sadece ilk bulduğun 200 taneyi al ve çık.
+                # Ayrıca önce 200 satırı 'akas'tan alıp SONRA 'titles' ile birleştiriyoruz.
+                query = (
+                    "SELECT sub_a.titleId, sub_a.ordering, sub_a.title, sub_a.region, sub_a.language, t.primaryTitle "
+                    "FROM (SELECT * FROM akas LIMIT 200) sub_a "
+                    "JOIN titles t ON sub_a.titleId = t.tconst"
+                )
+                cursor.execute(query)
+            
             akas_list = cursor.fetchall()
         return akas_list
 
@@ -432,31 +444,130 @@ class Database:
             cursor.execute(query)
             aka = cursor.fetchone()
         return aka
+    
+    def add_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        with connection.cursor() as cursor:
+            # NOT: titleId ve ordering primary key olduğu için, 
+            # aynı kaydı tekrar eklemeye çalışmak hata (1062) verir.
+            query = """
+                INSERT INTO akas (titleId, ordering, title, region, language, types, attributes, is_original_title)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(query, (
+                title_id, 
+                ordering, 
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title
+            ))
+            connection.commit()
+    def update_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
+        """Aka kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE akas 
+                SET title = %s, 
+                    region = %s, 
+                    language = %s, 
+                    types = %s, 
+                    attributes = %s, 
+                    is_original_title = %s
+                WHERE titleId = %s AND ordering = %s
+            """
+            cursor.execute(query, (
+                title, 
+                region if region else None, 
+                language if language else None, 
+                types if types else None, 
+                attributes if attributes else None,
+                is_original_title,
+                title_id, 
+                ordering
+            ))
+            connection.commit()
 
-    def get_ratings_list(self):
+            
+    def delete_aka(self, title_id, ordering):
+        # Senin delete_principal fonksiyonundaki mantığın aynısı:
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass # Hata olursa görmezden gel, devam et
 
         with connection.cursor() as cursor:
-            # Revert to LEFT JOIN to fetch the actual title name
+            # İki anahtarlı (titleId ve ordering) silme işlemi
+            query = "DELETE FROM akas WHERE titleId = %s AND ordering = %s"
+            cursor.execute(query, (title_id, ordering))
+            connection.commit()
+        return True
+    def get_akas_statistics(self):
+        """
+        OPTIMIZED COMPLEX QUERY:
+        - Uses a SUBQUERY (Derived Table) to limit the scan to 50,000 rows first.
+        - Joins only this sample data with 'titles'.
+        - Calculates Aggregations (Count, Avg, Sum).
+        - Runs instantly instead of freezing.
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
             query = """
                 SELECT 
+                    sub_a.region,
+                    COUNT(*) as total_entries,
+                    COUNT(DISTINCT sub_a.language) as language_count,
+                    ROUND(AVG(t.runtimeMinutes), 1) as avg_runtime,
+                    SUM(t.isAdult) as adult_count
+                FROM 
+                    (SELECT * FROM akas WHERE region IS NOT NULL LIMIT 50000) as sub_a
+                JOIN titles t ON sub_a.titleId = t.tconst
+                GROUP BY sub_a.region
+                ORDER BY total_entries DESC
+                LIMIT 15
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
+    def get_ratings_list(self, min_rating=None):
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            # 1. Temel Sorgu (Henüz LIMIT veya WHERE yok)
+            base_query = """
+                SELECT 
                     r.rating_id,
-                    r.title_id,      /* <--- BURAYI DÜZELTİN (r.titleId yerine r.title_id) */
+                    r.title_id,
                     r.average_rating,
                     r.num_votes,
                     t.primaryTitle 
                 FROM ratings r
                 LEFT JOIN titles t ON r.title_id = t.tconst
-                LIMIT 200;
             """
-            cursor.execute(query)
+            
+            # 2. Karar Anı: Filtre var mı?
+            if min_rating is not None:
+                # DİKKAT: SQL'de sıra şöyledir: WHERE -> ORDER BY -> LIMIT
+                # O yüzden önce WHERE ekliyoruz, sonuna LIMIT yapıştırıyoruz.
+                full_query = base_query + " WHERE r.average_rating >= %s ORDER BY r.num_votes DESC LIMIT 200"
+                
+                # Tek elemanlı tuple kuralı: (min_rating, ) virgül şart!
+                cursor.execute(full_query, (min_rating,))
+            else:
+                # Filtre yoksa direkt LIMIT ekle
+                full_query = base_query + " LIMIT 200"
+                cursor.execute(full_query)
+            
             ratings_list = cursor.fetchall()
         return ratings_list
-
     def get_single_rating(self, rating_id):
         try:
             connection.ping(reconnect=True)
@@ -492,3 +603,61 @@ class Database:
             """
             cursor.execute(query, (title_id, average_rating, num_votes))
             connection.commit()
+
+    def update_rating(self, rating_id, average_rating, num_votes):
+        """Rating kaydını günceller"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE ratings 
+                SET average_rating = %s, 
+                    num_votes = %s
+                WHERE rating_id = %s
+            """
+            cursor.execute(query, (average_rating, num_votes, rating_id))
+            connection.commit()
+
+    def delete_rating(self, rating_id):
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass # Hata olursa görmezden gel, devam et
+
+        with connection.cursor() as cursor:
+            query = "DELETE FROM ratings WHERE rating_id = %s"
+            cursor.execute(query, (rating_id))
+            connection.commit()
+        return True
+
+    def get_ratings_statistics(self):
+        """
+        ULTIMATE 5-TABLE JOIN QUERY (Düzeltilmiş Versiyon)
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    t.primaryTitle,
+                    r.average_rating,
+                    r.num_votes,
+                    COALESCE(pd.primaryName, 'Unknown') as directors,
+                    COUNT(DISTINCT a.region) as global_reach,
+                    GROUP_CONCAT(DISTINCT p.primaryName SEPARATOR ', ') as top_cast
+                FROM 
+                    (SELECT * FROM ratings LIMIT 200) r
+                JOIN titles t ON r.title_id = t.tconst
+                LEFT JOIN crew c ON t.tconst = c.tconst
+                LEFT JOIN people pd ON SUBSTRING_INDEX(c.directors, ',', 1) = pd.nconst
+                LEFT JOIN akas a ON t.tconst = a.titleId
+                LEFT JOIN principals pr ON t.tconst = pr.tconst AND (pr.category LIKE 'act%')
+                LEFT JOIN people p ON pr.nconst = p.nconst
+                GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
+                
+                ORDER BY r.average_rating DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
