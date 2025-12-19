@@ -256,7 +256,7 @@ class Database:
                     COUNT(DISTINCT p.principal_id) as total_principals,
                     COUNT(DISTINCT p.tconst) as total_titles,
                     COUNT(DISTINCT p.nconst) as total_people,
-                    AVG(r.averageRating) as avg_title_rating,
+                    AVG(r.average_rating) as avg_title_rating,
                     GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', ') as all_genres,
                     (
                         SELECT pe.primaryName 
