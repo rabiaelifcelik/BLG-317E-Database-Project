@@ -11,9 +11,14 @@
                 <h1>🎬 People</h1>
                 <p class="subtitle">Discover and explore talented professionals across the entertainment industry</p>
             </div>
-            <a href="{{ url_for('person_add_page') }}" class="btn-add">
-                <i class="fas fa-user-plus"></i> Add New Person
-            </a>
+            <div class="header-buttons">
+                <a href="{{ url_for('people_statistics_page') }}" class="btn-statistics">
+                    📊 View Analytics
+                </a>
+                <a href="{{ url_for('person_add_page') }}" class="btn-add">
+                    <i class="fas fa-user-plus"></i> Add New Person
+                </a>
+            </div>
         </div>
 
         <div class="search-section">

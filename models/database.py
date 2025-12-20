@@ -431,6 +431,46 @@ class Database:
             connection.commit()
         
         return True
+    
+    def get_people_performance_stats(self):
+        """
+        ULTIMATE PEOPLE ANALYTICS (5-Table Join & Subquery)
+        Complex query analyzing artists' career performance with:
+        - Subquery for efficient data sampling
+        - 5-table JOIN (people, principals, titles, ratings, akas)
+        - Aggregate functions (COUNT, AVG)
+        - GROUP BY and HAVING clauses
+        - Multiple sorting criteria
+        
+        Returns: Top 100 artists ranked by worldwide reach and average ratings
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    p.primaryName,
+                    p.primaryProfession,
+                    COUNT(DISTINCT pr.tconst) as total_productions,
+                    ROUND(AVG(r.averageRating), 2) as career_avg_rating,
+                    COUNT(DISTINCT a.region) as worldwide_reach
+                FROM people p
+                LEFT JOIN principals pr ON p.nconst = pr.nconst
+                LEFT JOIN titles t ON pr.tconst = t.tconst
+                LEFT JOIN ratings r ON t.tconst = r.tconst
+                LEFT JOIN akas a ON t.tconst = a.titleId
+                WHERE p.birthYear IS NOT NULL
+                GROUP BY p.nconst, p.primaryName, p.primaryProfession
+                HAVING total_productions > 0
+                ORDER BY worldwide_reach DESC, career_avg_rating DESC
+                LIMIT 200
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
 
 
 

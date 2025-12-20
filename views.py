@@ -182,6 +182,13 @@ def person_delete_page(person_id):
     return redirect(url_for('people_page'))
 
 
+def people_statistics_page():
+    """People performance statistics page - Complex analytics"""
+    db = current_app.config["db"]
+    stats = db.get_people_performance_stats()
+    return render_template('people_statistics.html', stats=stats)
+
+
 def akas_list_page():
 
     search_query = request.args.get("q")

@@ -53,6 +53,59 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+/* Header Section Buttons */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-statistics {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-statistics:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+.btn-add {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
 .btn-search {
     padding: 12px 30px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
