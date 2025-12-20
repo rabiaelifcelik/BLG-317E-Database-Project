@@ -26,8 +26,7 @@ class Database:
             print("Failed to reconnect to the database.")
             
         with connection.cursor() as cursor:
-            # Fetch 10 movies for testing
-            cursor.execute(f"SELECT * FROM titles WHERE tconst = '{title_key}';")
+            cursor.execute(f"SELECT * FROM titles WHERE tconst = '{title_key}'")
             title = cursor.fetchone()
 
         if title is not None or "":
@@ -49,8 +48,7 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            # Fetch 10 movies for testing
-            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
+            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit}")
             titles = cursor.fetchall()
 
         # From sample database
@@ -119,7 +117,7 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE t%'")
+            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 't%'")
             max_id = cursor.fetchone()
             new_id = f"t{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
             query = """
@@ -281,42 +279,47 @@ class Database:
         return stats
 
     def get_people(self, search_query=None):
-        """Get all people from database"""
+        """Optimized people listing with fast subquery approach"""
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
-            # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
-        with connection:
-            cursor = connection.cursor()
-            
-            # Base query
-            query = """
-                SELECT 
-                    p.nconst,
-                    p.primaryName,
-                    p.birthYear,
-                    p.deathYear,
-                    p.primaryProfession,
-                    p.knownForTitles,
-                    p.most_known_title,
-                    t.primaryTitle as most_known_title_name
-                FROM people p
-                LEFT JOIN titles t ON p.most_known_title = t.tconst
-            """
-            
-            # Add search condition if search_query is provided
+        with connection.cursor() as cursor:
             if search_query:
-                query += " WHERE p.primaryName LIKE %s ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
+                # Search case: Filter first, then JOIN (faster!)
+                query = """
+                    SELECT 
+                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.primaryProfession, p.knownForTitles, p.most_known_title,
+                        t.primaryTitle as most_known_title_name
+                    FROM (
+                        SELECT * FROM people 
+                        WHERE primaryName LIKE %s 
+                        ORDER BY most_known_title IS NULL, primaryName 
+                        LIMIT 200
+                    ) AS p
+                    LEFT JOIN titles t ON p.most_known_title = t.tconst
+                """
                 search_param = f"%{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
-                query += " ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
+                # No search: Get first 200 rows, then JOIN (fastest!)
+                query = """
+                    SELECT 
+                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.primaryProfession, p.knownForTitles, p.most_known_title,
+                        t.primaryTitle as most_known_title_name
+                    FROM (
+                        SELECT * FROM people 
+                        ORDER BY most_known_title IS NULL, primaryName 
+                        LIMIT 200
+                    ) AS p
+                    LEFT JOIN titles t ON p.most_known_title = t.tconst
+                """
                 cursor.execute(query)
             
             people = cursor.fetchall()
-        
         return people
     
 
@@ -378,10 +381,11 @@ class Database:
 
         """Add a new person to database"""
         with connection.cursor() as cursor:
-            # Generate nconst (simple approach - in real app use better method)
-            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 'nm%'")
-            max_id = cursor.fetchone()
-            new_id = f"nm{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
+            # Generate nconst - COALESCE ensures 0 if table is empty (null-safe)
+            cursor.execute("SELECT COALESCE(MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)), 0) as max_num FROM people WHERE nconst LIKE 'nm%'")
+            result = cursor.fetchone()
+            max_val = result['max_num'] if isinstance(result, dict) else result[0]
+            new_id = f"nm{int(max_val) + 1:07d}"
             
             query = """
                 INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
@@ -391,6 +395,42 @@ class Database:
             connection.commit()
         
         return new_id
+    
+    def update_person(self, person_id, name, birth_year, death_year, profession, known_for):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        """Update an existing person in database"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE people 
+                SET primaryName = %s, 
+                    birthYear = %s, 
+                    deathYear = %s, 
+                    primaryProfession = %s, 
+                    knownForTitles = %s
+                WHERE nconst = %s
+            """
+            cursor.execute(query, (name, birth_year, death_year, profession, known_for, person_id))
+            connection.commit()
+        
+        return True
+    
+    def delete_person(self, person_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        """Delete a person from database"""
+        with connection.cursor() as cursor:
+            query = "DELETE FROM people WHERE nconst = %s"
+            cursor.execute(query, (person_id,))
+            connection.commit()
+        
+        return True
 
 
 
@@ -437,10 +477,7 @@ class Database:
 
         """Fetches a single, detailed AKA record."""
         with connection.cursor() as cursor:
-            query = f"""
-                SELECT * FROM akas 
-                WHERE titleId = '{title_id}' AND ordering = {ordering};
-            """
+            query = f"SELECT * FROM akas WHERE titleId = '{title_id}' AND ordering = {ordering}"
             cursor.execute(query)
             aka = cursor.fetchone()
         return aka
@@ -577,7 +614,6 @@ class Database:
 
         """Fetches a single, detailed Ratings record by its Primary Key."""
         with connection.cursor() as cursor:
-            # Note: rating_id is the primary key defined in the latest schema
             query = f"""
                 SELECT 
                     r.rating_id,
@@ -587,10 +623,9 @@ class Database:
                     t.primaryTitle 
                 FROM ratings r
                 JOIN titles t ON r.title_id = t.tconst
-                WHERE r.rating_id = {rating_id};
+                WHERE r.rating_id = {rating_id}
             """
             cursor.execute(query)
-            
             rating = cursor.fetchone()
             print(rating)
         return rating

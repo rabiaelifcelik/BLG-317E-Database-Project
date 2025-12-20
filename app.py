@@ -37,6 +37,8 @@ if __name__ == '__main__':
     app.add_url_rule("/people", view_func=views.people_page)
     app.add_url_rule("/people/add", view_func=views.person_add_page, methods=["GET", "POST"])
     app.add_url_rule("/people/<person_id>", view_func=views.person_page)
+    app.add_url_rule("/people/<person_id>/edit", view_func=views.person_edit_page, methods=["GET", "POST"])
+    app.add_url_rule("/people/<person_id>/delete", view_func=views.person_delete_page, methods=["POST"])
 
     # akas table
 

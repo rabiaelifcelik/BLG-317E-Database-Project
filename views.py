@@ -154,6 +154,34 @@ def person_add_page():
         return redirect(url_for('person_page', person_id=new_id))
 
 
+def person_edit_page(person_id):
+    """Edit person page"""
+    db = current_app.config["db"]
+    
+    if request.method == "GET":
+        person = db.get_person(person_id)
+        if person == None:
+            abort(404)
+        return render_template('person_edit.html', person=person)
+    else:
+        form_name = request.form["name"]
+        form_birth = request.form.get("birth_year", None)
+        form_death = request.form.get("death_year", None)
+        form_profession = request.form.get("profession", "")
+        form_known_for = request.form.get("known_for", "")
+        
+        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for)
+        
+        return redirect(url_for('person_page', person_id=person_id))
+
+
+def person_delete_page(person_id):
+    """Delete person"""
+    db = current_app.config["db"]
+    db.delete_person(person_id)
+    return redirect(url_for('people_page'))
+
+
 def akas_list_page():
 
     search_query = request.args.get("q")
