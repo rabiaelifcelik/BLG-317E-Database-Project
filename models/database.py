@@ -1,4 +1,3 @@
-from titles import Titles
 from config import connection
 import json
 import pymysql
@@ -90,10 +89,10 @@ class Database:
                 cursor.execute(f"SELECT * FROM titles LIMIT {limit}")
 
             else:
-                query = """
-                    SELECT * FROM titles WHERE titles.primaryName LIKE '%%s%';
+                query = f"""
+                    SELECT * FROM titles WHERE titles.primaryTitle LIKE '%{search_title}%';
                 """
-                cursor.execute(query, (search_title))
+                cursor.execute(query)
             titles = cursor.fetchall()
 
         return titles

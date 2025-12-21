@@ -9,13 +9,9 @@ def home_page():
 
 def titles_page(limit = 200):
     db = current_app.config["db"]
-    titles = db.get_titles(limit)
+    search_query = request.args.get('search', '').strip()
+    titles = db.get_titles(limit, search_query if search_query else None)
     return render_template('titles.html', titles=titles)
-
-    # This lines is for psoudo-databases
-    # db = current_app.config["db"] # To connect the page with database, this is a must
-    # titles = db.get_titles()
-    # return render_template("titles.html", titles=sorted(titles))
 
 def title_page(title_id):
     if request.method == "GET":
