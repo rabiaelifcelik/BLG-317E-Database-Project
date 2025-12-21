@@ -329,7 +329,7 @@ class Database:
         return stats
 
     def get_people(self, search_query=None):
-        """Optimized people listing with fast subquery approach"""
+        """Optimized people listing with fast subquery approach and NULL safety"""
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -337,30 +337,37 @@ class Database:
 
         with connection.cursor() as cursor:
             if search_query:
-                # Search case: Filter first, then JOIN (faster!)
+                # Arama Durumu: WHERE ve ORDER BY sırası düzeltildi
                 query = """
                     SELECT 
-                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.nconst, p.primaryName, 
+                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.deathYear, 0) as deathYear, 
                         p.primaryProfession, p.knownForTitles, p.most_known_title,
                         t.primaryTitle as most_known_title_name
                     FROM (
                         SELECT * FROM people 
                         WHERE primaryName LIKE %s 
+                        ORDER BY nconst ASC -- İndeks üzerinden hızlı sıralama
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
                 """
-                search_param = f"%{search_query}%"
+                # Aramayı hızlandırmak için ismin başıyla eşleşenleri arıyoruz
+                search_param = f"{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
-                # No search: Get first 200 rows, then JOIN (fastest!)
+                # Genel Liste: En hızlı hali
                 query = """
                     SELECT 
-                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.nconst, p.primaryName, 
+                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.deathYear, 0) as deathYear,
                         p.primaryProfession, p.knownForTitles, p.most_known_title,
                         t.primaryTitle as most_known_title_name
                     FROM (
                         SELECT * FROM people 
+                        ORDER BY nconst ASC -- İndeks üzerinden anlık sıralama
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
@@ -369,7 +376,6 @@ class Database:
             
             people = cursor.fetchall()
         return people
-    
 
     def get_person(self, person_id):
         try:
