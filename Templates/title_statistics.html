@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block title %}About Content{% endblock %}
+{% block page_css %}
+<link rel="stylesheet" href="/static/titles.css"/>
+{% endblock %}
+{% block content %}
+<div class="titles-container">     
+    <div class="header-container" style="flex-direction: column; align-items: flex-start;">
+      <h1 class="title">Stats</h1>
+      <span>View the details about the content collection</span>
+    </div>
+
+    <select id="group-by" name="group-by" onchange="submitGroup(this)" class="order-input">
+        <option value="titleType" {% if current_sort == 'titleType' %}selected{% endif %}>Group by: titleType</option>
+        <option value="isAdult" {% if current_sort == 'isAdult' %}selected{% endif %}>Group by: child content</option>
+        <option value="genres" {% if current_sort == 'genres' %}selected{% endif %}>Group by: genres</option>
+    </select>
+
+
+    <script>
+        function submitGroup(selectElement){
+        // Get current search query
+        const form = document.createElement('form');
+        form.method = 'GET';
+        form.action = '{{ url_for("titles_statistics_page") }}';
+
+        // Append order-by
+        const orderField = document.createElement('input');
+        orderField.type = 'hidden';
+        orderField.name = 'group-by';
+        orderField.value = selectElement.value;
+        form.appendChild(orderField);
+
+        document.body.appendChild(form);
+        form.submit();
+        }
+    </script>
+
+    {% if stats and stats[0]['count'] %}
+    <table class="stats-table">
+      <thead>
+        <tr>
+            <th>Number of Contents</th>
+            <th>Values</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for stat in stats %}
+      <tr>
+          <td>{{ stat.count }}</td>
+          <td>{% if stat.value == 0 %}Child Friendly {% elif stat.value == 1%}Adult Content{%else%}{{stat.value}}{%endif%} </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

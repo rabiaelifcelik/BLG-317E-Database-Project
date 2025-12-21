@@ -25,6 +25,7 @@ if __name__ == '__main__':
     app.add_url_rule("/titles/add", view_func=views.title_add_page)
     app.add_url_rule("/titles/<title_id>/edit", view_func=views.title_edit_page, methods=["GET", "POST"])
     app.add_url_rule("/titles/<title_id>/delete", view_func=views.title_delete_page, methods=["POST"])
+    app.add_url_rule("/titles/stats", view_func=views.titles_statistics_page)
 
     app.add_url_rule("/principals", view_func=views.principals_page)
     app.add_url_rule("/principals/add", view_func=views.principal_add_page, methods=["GET", "POST"])

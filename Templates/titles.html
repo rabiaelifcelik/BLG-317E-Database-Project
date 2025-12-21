@@ -4,74 +4,120 @@
 <link rel="stylesheet" href="/static/titles.css"/>
 {% endblock %}
 {% block content %}
-        <div class="header-container">
-                <div class="title-and-info-container">
-                        <h1 class="title"><i class="fas fa-star"></i>  Titles</h1>
-                        <a href="{{ url_for('title_add_page') }}" class="btn-add">
-                                <i class="fas fa-plus"></i>
-                                <span>Add New Titles!</span>
-                        </a>
-                </div>
+        <div class="titles-container">
+                <div class="header-container">
+                        <div class="title-and-info-container">
+                                <h1 class="title"><i class="fas fa-star"></i>  Titles</h1>
 
-                <div class="search-section">
-                        <form method="GET" action="{{ url_for('titles_page') }}" class="search-form">
-                                <input 
-                                        type="text" 
-                                        name="search" 
-                                        placeholder="🔍 Search by name..." 
-                                        value="{{ search_query if search_query else '' }}"
-                                        class="search-input"
-                                >
-                                <button type="submit" class="btn-search">🔍 Search</button>
-                                {% if search_query %}
-                                        <a href="{{ url_for('titles_page') }}" class="btn-clear">✖ Clear</a>
-                                {% endif %}
-                        </form>
-                </div>
-        </div>
-        
-        {% if titles %}
-        <div class="titles-grid">
-                {% for title in titles %}
-                <div class="title-card">
-                        <div class="title-header">
-                                <h3>{{ title.primaryTitle }}</h3>
-                                <span class="title-id">{{ title.tconst }}</span>
-                        </div>
+                                <div style="display:flex; flex-direction: column;">
+                                        <a href="{{ url_for('title_add_page') }}" class="btn-add">
+                                                <i class="fas fa-plus"></i>
+                                                <span>Add New Titles!</span>
+                                        </a>
 
-                        <div class="title-info">
-                                <div class="info-row">
-                                        <span class="label">📅 Start Year:</span>
-                                        <span class="value">{{ title.startYear if title.startYear else 'Unknown' }}</span>
-                                </div>
-                                
-                                {% if title.endYear %}
-                                <div class="info-row">
-                                        <span class="label">End Year:</span>
-                                        <span class="value">{{ title.endYear }}</span>
-                                </div>
-                                {% endif %}
-                                
-                                <div class="info-row">
-                                        <span class="label">Genres:</span>
-                                        <span class="value profession-tag">
-                                        {{ title.genres if title.genres else 'N/A' }}
-                                        </span>
-                                </div>
-
-                                <div class="title-actions">
-                                        <a href="{{ url_for('title_page', title_id=title.tconst) }}" class="btn-view">
-                                                View Details →
+                                        <a href="{{ url_for('titles_statistics_page') }}" class="btn-search">
+                                                <span>Stats!</span>
                                         </a>
                                 </div>
-
                         </div>
+
+                        <div class="search-section">
+                                <form method="GET" action="{{ url_for('titles_page') }}" class="search-form">
+                                        <input 
+                                                type="text" 
+                                                name="search" 
+                                                placeholder="🔍 Search by name..." 
+                                                value="{{ search_query if search_query else '' }}"
+                                                class="search-input"
+                                        >
+                                        <button type="submit" class="btn-search">🔍 Search</button>
+                                        {% if search_query %}
+                                                <a href="{{ url_for('titles_page') }}" class="btn-clear">✖ Clear</a>
+                                        {% endif %}
+                                </form>
+                        </div>
+
+                        <select id="order-by" name="order-by" onchange="submitSort(this)" class="order-input">
+                                <option value="default" {% if current_sort == 'default' %}selected{% endif %}>Sort by: title_id</option>
+                                <option value="content-name" {% if current_sort == 'content-name' %}selected{% endif %}>Sort by: content name</option>
+                                <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Sort by: new to old</option>
+                                <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Sort by: old to new</option>
+                        </select>
+
+
+                        <script>
+                                function submitSort(selectElement){
+                                // Get current search query
+                                const searchInput = document.querySelector('.search-input');
+                                const form = document.createElement('form');
+                                form.method = 'GET';
+                                form.action = '{{ url_for("titles_page") }}';
+
+                                // Append search if exists
+                                if(searchInput.value.trim() !== ''){
+                                        const searchField = document.createElement('input');
+                                        searchField.type = 'hidden';
+                                        searchField.name = 'search';
+                                        searchField.value = searchInput.value.trim();
+                                        form.appendChild(searchField);
+                                }
+
+                                // Append order-by
+                                const orderField = document.createElement('input');
+                                orderField.type = 'hidden';
+                                orderField.name = 'order-by';
+                                orderField.value = selectElement.value;
+                                form.appendChild(orderField);
+
+                                document.body.appendChild(form);
+                                form.submit();
+                                }
+                        </script>
                 </div>
-                {% endfor %}
-                   
+                
+                {% if titles %}
+                <div class="titles-grid">
+                        {% for title in titles %}
+                        <div class="title-card">
+                                <div class="title-header">
+                                        <h3>{{ title.primaryTitle }}</h3>
+                                        <span class="title-id">{{ title.tconst }}</span>
+                                </div>
+
+                                <div class="title-info">
+                                        <div class="info-row">
+                                                <span class="label">📅 Start Year:</span>
+                                                <span class="value">{{ title.startYear if title.startYear else 'Unknown' }}</span>
+                                        </div>
+                                        
+                                        {% if title.endYear %}
+                                        <div class="info-row">
+                                                <span class="label">End Year:</span>
+                                                <span class="value">{{ title.endYear }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="info-row">
+                                                <span class="label">Genres:</span>
+                                                <span class="value profession-tag">
+                                                {{ title.genres if title.genres else 'N/A' }}
+                                                </span>
+                                        </div>
+
+                                        <div class="title-actions">
+                                                <a href="{{ url_for('title_page', title_id=title.tconst) }}" class="btn-view">
+                                                        View Details →
+                                                </a>
+                                        </div>
+
+                                </div>
+                        </div>
+                        {% endfor %}
+                        
+                </div>
+                <div class="title-load">
+                        <a href="{{url_for('titles_page', limit = 400)}}" class="btn-view">Scroll More</a>
+                </div>     
+                {% endif %}
         </div>
-        <div class="title-load">
-                <a href="{{url_for('titles_page', limit = 400)}}" class="btn-view">Scroll More</a>
-        </div>     
-        {% endif %}
 {% endblock %}

@@ -3,6 +3,7 @@
 /* titles List Page */
 .titles-container {
     padding: 20px;
+    max-width: 1400px;
 }
 
 .header-container{
@@ -45,7 +46,7 @@
     max-width: 600px;
 }
 
-.search-input {
+.search-input, .order-input {
     display: flex;
     flex: 4;
     flex-grow:4;
@@ -66,6 +67,11 @@
 
 .search-input::placeholder {
     color: rgba(255, 255, 255, 0.5);
+}
+
+.order-input, .order-input:focus {
+    background-color: #7982e6;
+    min-width: 210px;
 }
 
 
@@ -614,4 +620,44 @@ input, select {
 .form-submit-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+/* Table Styles */
+.stats-table {
+    margin-top: 40px;
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.stats-table thead {
+    background: rgba(255, 215, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.stats-table th {
+    
+    padding: 18px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    color: #ffd700;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.stats-table th i {
+    margin-right: 8px;
+}
+
+.stats-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stats-table td {
+    padding: 15px;
+    font-size: 14px;
+    color: white;
 }

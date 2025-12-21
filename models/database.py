@@ -76,27 +76,67 @@ class Database:
         # else:
         #     print("title not found in database.")
 
-
-    def get_titles(self, limit=200, search_title=None):
+    def get_titles(self, limit=200, search_title=None, sort = 'default', group = None):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
+        order_by_mapping = {
+            'oldest': 'startYear ASC',
+            'newest': 'startYear DESC',
+            'content-name': 'primaryTitle ASC',
+            'default': 'tconst ASC'  # default
+        }
+        order_by = order_by_mapping.get(sort, 'tconst ASC')
+
+        
+
         with connection.cursor() as cursor:
             if search_title is None:
-                cursor.execute(f"SELECT * FROM titles LIMIT {limit}")
+                query = f"SELECT * FROM titles ORDER BY {order_by} LIMIT {limit};"
 
             else:
                 query = f"""
-                    SELECT * FROM titles WHERE titles.primaryTitle LIKE '%{search_title}%';
+                    SELECT * FROM titles WHERE titles.primaryTitle LIKE '%{search_title}%' ORDER BY {order_by} LIMIT {limit};
                 """
-                cursor.execute(query)
+
+            if group is not None:
+                query = f"SELECT COUNT({group}) as count, {group} as value from titles group by {group} LIMIT {limit};"
+
+                if group == "genres":
+                    query = f"""WITH RECURSIVE genre_split AS (
+                                    SELECT
+                                        tconst,
+                                        SUBSTRING_INDEX(genres, ',', 1) AS genre,
+                                        SUBSTRING(genres, LENGTH(SUBSTRING_INDEX(genres, ',', 1)) + 2) AS rest
+                                    FROM titles
+                                    WHERE genres IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT
+                                        tconst,
+                                        SUBSTRING_INDEX(rest, ',', 1),
+                                        SUBSTRING(rest, LENGTH(SUBSTRING_INDEX(rest, ',', 1)) + 2)
+                                    FROM genre_split
+                                    WHERE rest <> ''
+                                )
+
+                                SELECT
+                                    genre as value,
+                                    COUNT(*) AS count
+                                FROM genre_split
+                                GROUP BY value
+                                ORDER BY count DESC
+                                LIMIT 10;
+                                """
+                
+            cursor.execute(query)
             titles = cursor.fetchall()
 
-        return titles
-    
+        return titles    
 
     def get_crew(self,title_id):
         try:

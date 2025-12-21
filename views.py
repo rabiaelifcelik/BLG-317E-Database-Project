@@ -9,9 +9,22 @@ def home_page():
 
 def titles_page(limit = 200):
     db = current_app.config["db"]
-    search_query = request.args.get('search', '').strip()
-    titles = db.get_titles(limit, search_query if search_query else None)
+    if request.method == "GET":
+        search_query = request.args.get('search', '').strip()
+        sort = request.args.get('order-by', 'default')
+        print(request.args)
+    titles = db.get_titles(limit, search_query if search_query else None, sort)
     return render_template('titles.html', titles=titles)
+
+def titles_statistics_page():
+    db = current_app.config["db"]
+    if request.method == "GET":
+        group = request.args.get('group-by', None)
+        print(group)
+        print(request.args)
+
+    stats = db.get_titles(group=group)
+    return render_template('title_statistics.html', stats=stats)
 
 def title_page(title_id):
     if request.method == "GET":

@@ -4,104 +4,105 @@
 <link rel="stylesheet" href="/static/titles.css"/>
 {% endblock %}
 {% block content %}
-    <div style="text-align: left; margin-bottom: 5px; margin-left:30px">
-            <a href="{{ url_for('titles_page') }}" class="btn-secondary">
-                ← Back to Titles List
-            </a>
-    </div>
+<div class="titles-container">
+        <div style="text-align: left; margin-bottom: 5px; margin-left:30px">
+                <a href="{{ url_for('titles_page') }}" class="btn-secondary">
+                    ← Back to Titles List
+                </a>
+        </div>
 
-    <div class="titles-container">
-        <div style="flex-direction: column; align-items: stretch;">
-                        <div style="display:flex;flex-direction: column; align-items: center; justify-content:center; margin-bottom:25px;">
-                <h1> ➕ Add New Title</h1>
+        <div class="titles-container">
+            <div style="flex-direction: column; align-items: stretch;">
+                            <div style="display:flex;flex-direction: column; align-items: center; justify-content:center; margin-bottom:25px;">
+                    <h1> ➕ Add New Title</h1>
+                </div>
+            </div>
+
+            <div class="form-container">
+
+                <form action="{{ url_for('title_add_page')}}" method="post">
+
+                    <div class="form-group">
+                        <label for="ordering">Primary Title</label>
+                        <input type="text" id="primary_title" name="primary_title" required 
+                            placeholder="e.g., Catch Me If You Can" min="1">
+                        <small>Write the primary title of the content</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name_id">Original Title</label>
+                        <input type="text" id="original_title" name="original_title" required 
+                            placeholder="e.g., Catch Me If You Can">
+                        <small>Write the original title of the content</small>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="label-div">
+                        <label for="title_type">Title Type</label></div>
+                        <div>
+                            <select id="category" name="category" required>
+                                <option value="default">-- Select Type --</option>
+                                <option value="movie">Movie</option>                             
+                                <option value="short">Short</option>                      
+                                <option value="tvShort">TV Short</option>
+                                <option value="tvMovie">TV Movie</option>
+                                <option value="tvEpisode">TV Episode</option>
+                                <option value="tvSeries">TV Series</option>
+                                <option value="tvMiniSeries">TV Mini Series</option>
+                                <option value="tvSpecial">TV Special</option>
+                                <option value="video">Video</option>
+                                <option value="videoGame">Video Game</option>
+                                <option value="tvPilot">Tv Pilot</option>
+                            </select>
+                        </div>
+                        <small >The type of the title</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="job">Adult Content</label>
+                        <input type="checkbox" id="is_adult" name="is_adult" value="1" >
+                        <small>Select if the content is not suitable for children</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_year">Start Year</label>
+                        <input id="start_year" name="start_year" type="month">
+                        <small>Change the start year of the content if needed.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_year">End Year</label>
+                        <input id="end_year" name="end_year" type="month">
+                        <small>Change/add the end year of the content if needed, otherwise, leave empty.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="runtime_minutes">Runtime Minutes</label>
+                        <input id="runtime_minutes" name="runtime_minutes" type="number" min="1">
+                        <small>Write the runtime minutes of the content.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genres">Genres</label>
+                        <input id="genres" name="genres" type="text" >
+                        <small>Write the genres of the content.</small>
+                    </div>
+
+
+
+                    <button type="submit" class="form-submit-btn">
+                        💾 Save Changes
+                    </button>
+                </form>
+            </div>
+
+            <div class="info-container">
+                <h3>💡 Tips:</h3>
+                <ul>
+                    <li>Fields marked with * are required</li>
+                </ul>
             </div>
         </div>
-
-        <div class="form-container">
-
-            <form action="{{ url_for('title_add_page')}}" method="post">
-
-                <div class="form-group">
-                    <label for="ordering">Primary Title</label>
-                    <input type="text" id="primary_title" name="primary_title" required 
-                           placeholder="e.g., Catch Me If You Can" min="1">
-                    <small>Write the primary title of the content</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="name_id">Original Title</label>
-                    <input type="text" id="original_title" name="original_title" required 
-                           placeholder="e.g., Catch Me If You Can">
-                    <small>Write the original title of the content</small>
-                </div>
-
-                <div class="form-group">
-                    <div class="label-div">
-                    <label for="title_type">Title Type</label></div>
-                    <div>
-                        <select id="category" name="category" required>
-                            <option value="default">-- Select Type --</option>
-                            <option value="movie">Movie</option>                             
-                            <option value="short">Short</option>                      
-                            <option value="tvShort">TV Short</option>
-                            <option value="tvMovie">TV Movie</option>
-                            <option value="tvEpisode">TV Episode</option>
-                            <option value="tvSeries">TV Series</option>
-                            <option value="tvMiniSeries">TV Mini Series</option>
-                            <option value="tvSpecial">TV Special</option>
-                            <option value="video">Video</option>
-                            <option value="videoGame">Video Game</option>
-                            <option value="tvPilot">Tv Pilot</option>
-                        </select>
-                    </div>
-                    <small >The type of the title</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="job">Adult Content</label>
-                    <input type="checkbox" id="is_adult" name="is_adult" value="1" >
-                    <small>Select if the content is not suitable for children</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="start_year">Start Year</label>
-                    <input id="start_year" name="start_year" type="month">
-                    <small>Change the start year of the content if needed.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="end_year">End Year</label>
-                    <input id="end_year" name="end_year" type="month">
-                    <small>Change/add the end year of the content if needed, otherwise, leave empty.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="runtime_minutes">Runtime Minutes</label>
-                    <input id="runtime_minutes" name="runtime_minutes" type="number" min="1">
-                    <small>Write the runtime minutes of the content.
-                    </small>
-                </div>
-
-                <div class="form-group">
-                    <label for="genres">Genres</label>
-                    <input id="genres" name="genres" type="text" >
-                    <small>Write the genres of the content.</small>
-                </div>
-
-
-
-                <button type="submit" class="form-submit-btn">
-                    💾 Save Changes
-                </button>
-            </form>
-        </div>
-
-        <div class="info-container">
-            <h3>💡 Tips:</h3>
-            <ul>
-                <li>Fields marked with * are required</li>
-            </ul>
-        </div>
     </div>
-
 {% endblock %}
