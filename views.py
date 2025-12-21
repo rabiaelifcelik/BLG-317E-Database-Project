@@ -101,8 +101,20 @@ def cast_page():
 def principals_page():
     db = current_app.config["db"]
     search_query = request.args.get('search', '').strip()
-    principals = db.get_principals(search_query if search_query else None)
-    return render_template('principals.html', principals=principals, search_query=search_query)
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    
+    principals, total_count = db.get_principals(search_query if search_query else None, page, per_page)
+    
+    total_pages = (total_count + per_page - 1) // per_page  # Ceiling division
+    
+    return render_template('principals.html', 
+                         principals=principals, 
+                         search_query=search_query,
+                         page=page,
+                         total_pages=total_pages,
+                         total_count=total_count,
+                         per_page=per_page)
 
 def principal_page(principal_id):
     db = current_app.config["db"]

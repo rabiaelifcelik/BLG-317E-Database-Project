@@ -47,7 +47,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Age at Death:</span>
-                        <span class="info-value">{{ person.deathYear - person.birthYear }} years</span>
+                        <span class="info-value">{{ (person.deathYear | int) - (person.birthYear | int) }} years</span>
                     </div>
                     {% else %}
                     <div class="info-item">
@@ -74,11 +74,13 @@
                         </span>
                     </div>
                     
-                    {% if person.most_known_title_name %}
+                    {% if person.most_known_title_name and person.most_known_title %}
                     <div class="info-item">
                         <span class="info-label">⭐ Most Known For:</span>
                         <span class="info-value">
-                            {{ person.most_known_title_name }}
+                            <a href="{{ url_for('title_page', title_id=person.most_known_title) }}">
+                                {{ person.most_known_title_name }}
+                            </a>
                         </span>
                     </div>
                     {% endif %}

@@ -240,64 +240,84 @@ class Database:
 
 
 
-    def get_principals(self):
+    def get_principals(self, search_query=None, page=1, per_page=50):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
+        offset = (page - 1) * per_page
+
         with connection.cursor() as cursor:
-            query = """
-                SELECT 
-                    p.principal_id,
-                    p.tconst,
+            # First, get the total count
+            if search_query:
+                count_query = """
+                    SELECT COUNT(*) as total
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    WHERE pe.primaryName LIKE %s 
+                       OR t.primaryTitle LIKE %s
+                       OR p.category LIKE %s
+                       OR p.job LIKE %s
+                """
+                search_param = f"%{search_query}%"
+                cursor.execute(count_query, (search_param, search_param, search_param, search_param))
+            else:
+                count_query = "SELECT COUNT(*) as total FROM principals"
+                cursor.execute(count_query)
+            
+            total_count = cursor.fetchone()['total']
 
-                    CASE
-                        WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
-                            CASE
-                                WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
-                                    CONCAT(
-                                        pt.primaryTitle,
-                                        ' (S',
-                                        LPAD(e.seasonNumber, 2, '0'),
-                                        'E',
-                                        LPAD(e.episodeNumber, 2, '0'),
-                                        ')'
-                                    )
-                                ELSE
-                                    pt.primaryTitle
-                            END
-                        ELSE
-                            t.primaryTitle
-                    END AS title_name,
-
-                    p.ordering,
-                    p.nconst,
-                    pe.primaryName AS person_name,
-                    p.category,
-                    p.job,
-                    p.characters
-
-                FROM principals p
-
-                LEFT JOIN titles t ON p.tconst = t.tconst
-                LEFT JOIN episode e ON e.tconst = p.tconst
-                LEFT JOIN titles pt ON pt.tconst = e.parentTconst
-                LEFT JOIN people pe ON p.nconst = pe.nconst
-
-                ORDER BY p.principal_id DESC 
-                LIMIT 200;
-            """
-            cursor.execute(query)
+            # Then get the paginated data
+            if search_query:
+                # Search in person name, title name, category, or job
+                query = """
+                    SELECT 
+                        p.principal_id,
+                        p.tconst,
+                        t.primaryTitle as title_name,
+                        p.ordering,
+                        p.nconst,
+                        pe.primaryName as person_name,
+                        p.category,
+                        p.job,
+                        p.characters
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    WHERE pe.primaryName LIKE %s 
+                       OR t.primaryTitle LIKE %s
+                       OR p.category LIKE %s
+                       OR p.job LIKE %s
+                    ORDER BY p.principal_id DESC
+                    LIMIT %s OFFSET %s
+                """
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param, search_param, search_param, search_param, per_page, offset))
+            else:
+                query = """
+                    SELECT 
+                        p.principal_id,
+                        p.tconst,
+                        t.primaryTitle as title_name,
+                        p.ordering,
+                        p.nconst,
+                        pe.primaryName as person_name,
+                        p.category,
+                        p.job,
+                        p.characters
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    ORDER BY p.principal_id DESC
+                    LIMIT %s OFFSET %s
+                """
+                cursor.execute(query, (per_page, offset))
             principals = cursor.fetchall()
-            print(principals)
-        return principals
-
-
-
-
-        
+        return principals, total_count
+    
     def get_principal(self, principal_id):
         try:
             connection.ping(reconnect=True)
@@ -417,7 +437,7 @@ class Database:
         return stats
 
     def get_people(self, search_query=None):
-        """Optimized people listing with fast subquery approach"""
+        """Optimized people listing with fast subquery approach and NULL safety"""
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -425,32 +445,37 @@ class Database:
 
         with connection.cursor() as cursor:
             if search_query:
-                # Search case: Filter first, then JOIN (faster!)
+                # Arama Durumu: WHERE ve ORDER BY sırası düzeltildi
                 query = """
                     SELECT 
-                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.nconst, p.primaryName, 
+                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.deathYear, 0) as deathYear, 
                         p.primaryProfession, p.knownForTitles, p.most_known_title,
                         t.primaryTitle as most_known_title_name
                     FROM (
                         SELECT * FROM people 
                         WHERE primaryName LIKE %s 
-                        ORDER BY most_known_title IS NULL, primaryName 
+                        ORDER BY nconst ASC -- İndeks üzerinden hızlı sıralama
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
                 """
-                search_param = f"%{search_query}%"
+                # Aramayı hızlandırmak için ismin başıyla eşleşenleri arıyoruz
+                search_param = f"{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
-                # No search: Get first 200 rows, then JOIN (fastest!)
+                # Genel Liste: En hızlı hali
                 query = """
                     SELECT 
-                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.nconst, p.primaryName, 
+                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.deathYear, 0) as deathYear,
                         p.primaryProfession, p.knownForTitles, p.most_known_title,
                         t.primaryTitle as most_known_title_name
                     FROM (
                         SELECT * FROM people 
-                        ORDER BY most_known_title IS NULL, primaryName 
+                        ORDER BY nconst ASC -- İndeks üzerinden anlık sıralama
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
@@ -459,7 +484,6 @@ class Database:
             
             people = cursor.fetchall()
         return people
-    
 
     def get_person(self, person_id):
         try:

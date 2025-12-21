@@ -48,6 +48,14 @@
         </div>
 
         {% if principals %}
+        <div class="stats-info" style="margin: 15px 0; padding: 10px; background: #f5f5f5; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #666; font-size: 14px;">
+                Showing {{ ((page - 1) * per_page) + 1 }} - {{ ((page - 1) * per_page) + principals|length }} of {{ total_count }} principals
+            </span>
+            <span style="color: #666; font-size: 14px;">
+                Page {{ page }} of {{ total_pages }}
+            </span>
+        </div>
         <div class="scrollable-content">
             <table class="principals-table">
                 <thead>
@@ -98,6 +106,56 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination Controls -->
+        {% if total_pages > 1 %}
+        <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin: 30px 0; flex-wrap: wrap;">
+            {% if page > 1 %}
+            <a href="{{ url_for('principals_page', page=1, search=search_query if search_query else '') }}" 
+               class="btn-page" style="padding: 10px 15px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                <i class="fas fa-angle-double-left"></i> First
+            </a>
+            <a href="{{ url_for('principals_page', page=page-1, search=search_query if search_query else '') }}" 
+               class="btn-page" style="padding: 10px 15px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+            
+            {% for p in range([1, page - 2]|max, [total_pages, page + 2]|min + 1) %}
+                {% if p == page %}
+                <span class="btn-page-active" style="padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; font-weight: 600; min-width: 45px; text-align: center;">
+                    {{ p }}
+                </span>
+                {% else %}
+                <a href="{{ url_for('principals_page', page=p, search=search_query if search_query else '') }}" 
+                   class="btn-page" style="padding: 10px 15px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 6px; text-decoration: none; font-weight: 600; min-width: 45px; text-align: center; transition: all 0.3s;">
+                    {{ p }}
+                </a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <a href="{{ url_for('principals_page', page=page+1, search=search_query if search_query else '') }}" 
+               class="btn-page" style="padding: 10px 15px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            <a href="{{ url_for('principals_page', page=total_pages, search=search_query if search_query else '') }}" 
+               class="btn-page" style="padding: 10px 15px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                Last <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        
+        <style>
+            .btn-page:hover {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: white !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+            }
+        </style>
+        {% endif %}
+        
         {% else %}
         <div class="empty-state">
             <i class="fas fa-users-slash" style="font-size: 64px; opacity: 0.3; margin-bottom: 20px;"></i>
