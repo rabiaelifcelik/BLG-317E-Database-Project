@@ -456,12 +456,12 @@ class Database:
                     p.primaryName,
                     p.primaryProfession,
                     COUNT(DISTINCT pr.tconst) as total_productions,
-                    ROUND(AVG(r.averageRating), 2) as career_avg_rating,
+                    ROUND(AVG(r.average_rating), 2) as career_avg_rating,
                     COUNT(DISTINCT a.region) as worldwide_reach
                 FROM people p
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
                 LEFT JOIN titles t ON pr.tconst = t.tconst
-                LEFT JOIN ratings r ON t.tconst = r.tconst
+                LEFT JOIN ratings r ON t.tconst = r.title_id
                 LEFT JOIN akas a ON t.tconst = a.titleId
                 WHERE p.birthYear IS NOT NULL
                 GROUP BY p.nconst, p.primaryName, p.primaryProfession
