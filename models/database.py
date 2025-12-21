@@ -425,7 +425,7 @@ class Database:
                     ) as most_active_person
                 FROM principals p
                 LEFT JOIN titles t ON p.tconst = t.tconst
-                LEFT JOIN ratings r ON p.tconst = r.tconst
+                LEFT JOIN ratings r ON p.tconst = r.title_id
                 LEFT JOIN people pe ON p.nconst = pe.nconst
                 WHERE p.category IS NOT NULL
                 GROUP BY p.category
