@@ -1,11 +1,35 @@
-from flask import render_template, current_app, abort, request, redirect, url_for
+from flask import render_template, current_app, abort, request, redirect, url_for, flash
+from flask_login import login_user, logout_user, current_user, login_required
+from passlib.hash import pbkdf2_sha256 as hasher
 import sys
 
 sys.path.append("models")
 from models.database import Database
+from forms import LoginForm
+from user import User, get_user
 
 def home_page():
     return render_template('home.html') 
+
+def login_page():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.data["username"]
+        user = get_user(username)
+        if user is not None:
+            password = form.data["password"]
+            if hasher.verify(password, user.password):
+                login_user(user)
+                flash("You have logged in.")
+                next_page = request.args.get("next", url_for("home_page"))
+                return redirect(next_page)
+        flash("Invalid credentials.")
+    return render_template("login.html", form=form)
+
+def logout_page():
+    logout_user()
+    flash("You have logged out.")
+    return redirect(url_for("home_page"))
 
 def titles_page(limit = 200):
     db = current_app.config["db"]
@@ -49,6 +73,9 @@ def title_page(title_id):
         return render_template("title_edit.html", title = title)
     
 def title_add_page():
+    if not current_user.is_admin:
+            abort(401)
+
     if request.method == "GET":
         return render_template('title_add.html')
     else:
@@ -65,7 +92,10 @@ def title_add_page():
         
         return redirect(url_for('titles_page'))
 
+@login_required
 def title_edit_page(title_id):
+    # Abort the page if the user is not admin
+
     db = current_app.config["db"]
     
     if request.method == "GET":
@@ -91,6 +121,10 @@ def title_edit_page(title_id):
         return redirect(url_for('title_page', title_id=title_id))
     
 def title_delete_page(title_id):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     db = current_app.config["db"]
     db.delete_title(title_id)
     return redirect(url_for('titles_page'))
@@ -123,7 +157,12 @@ def principal_page(principal_id):
         abort(404)
     return render_template("principal.html", principal=principal)
 
+@login_required
 def principal_edit_page(principal_id):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     db = current_app.config["db"]
     
     if request.method == "GET":
@@ -144,6 +183,10 @@ def principal_edit_page(principal_id):
         return redirect(url_for('principal_page', principal_id=principal_id))
 
 def principal_delete_page(principal_id):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     db = current_app.config["db"]
     db.delete_principal(principal_id)
     return redirect(url_for('principals_page'))
@@ -154,6 +197,10 @@ def principals_statistics_page():
     return render_template("principals_statistics.html", stats=stats)
 
 def principal_add_page():
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     if request.method == "GET":
         return render_template('principal_add.html')
     else:
@@ -190,6 +237,10 @@ def person_page(person_id):
 
 
 def person_add_page():
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     """Add new person page"""
     if request.method == "GET":
         return render_template('person_add.html')
@@ -204,8 +255,10 @@ def person_add_page():
         new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
         return redirect(url_for('person_page', person_id=new_id))
 
-
+@login_required
 def person_edit_page(person_id):
+    # Abort the page if the user is not admin
+
     """Edit person page"""
     db = current_app.config["db"]
     
@@ -226,6 +279,10 @@ def person_edit_page(person_id):
 
 
 def person_delete_page(person_id):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     """Delete person"""
     db = current_app.config["db"]
     db.delete_person(person_id)
@@ -274,6 +331,10 @@ def akas_details_page(title_id, ordering):
     )
 
 def aka_add_page():
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     db = current_app.config["db"]
     
     if request.method == "GET":
@@ -314,7 +375,11 @@ def aka_add_page():
         except Exception as e:
             # Foreign Key veya Primary Key hatası durumunda
             return f"Error adding Alternate Title. Ensure Title ID exists and the Ordering ID is unique for that Title. Error: {str(e)}", 500
+
+@login_required       
 def aka_edit_page(title_id, ordering):
+    # Abort the page if the user is not admin
+
     db = current_app.config["db"]
 
     if request.method == "GET":
@@ -349,7 +414,12 @@ def aka_edit_page(title_id, ordering):
             return redirect(url_for('akas_details_page', title_id=title_id, ordering=ordering))
         except Exception as e:
             return f"Error updating record: {str(e)}", 500
+        
 def delete_aka_page(title_id, ordering):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     # Veritabanı bağlantısını al
     db = current_app.config["db"]
     
@@ -360,18 +430,15 @@ def delete_aka_page(title_id, ordering):
         return redirect(url_for("akas_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
+    
 def akas_stats_page():
     db = current_app.config["db"]
     stats = db.get_akas_statistics()
     return render_template("akas_statistics.html", stats=stats)
-# NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
+
 def ratings_list_page():
     min_val = request.args.get("min")
     
-    # DEBUG: Terminale yazdıralım bakalım veri geliyor mu?
-    print(f"--- FİLTRELEME İSTEĞİ: {min_val} ---")
-    
-    # Gelen veri boş mu kontrol et, doluysa sayıya çevir
     if min_val and min_val.strip() != "":
         try:
             min_val = float(min_val)
@@ -389,7 +456,6 @@ def ratings_list_page():
         current_min=min_val
     )
 
-# NEW VIEW FUNCTION: ratings_details_page (For the details of a single rating entry)
 def ratings_details_page(rating_id):
     db = current_app.config["db"]
     
@@ -410,6 +476,10 @@ def ratings_details_page(rating_id):
     )
 
 def rating_add_page():
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     if request.method == "GET":
         return render_template("ratings_add.html")
     
@@ -428,8 +498,11 @@ def rating_add_page():
         except Exception as e:
             # In a real app, you would flash an error message here
             return f"Error adding rating. Ensure Title ID {title_id} exists. Error: {str(e)}"
-        
+
+@login_required     
 def rating_edit_page(rating_id):
+    # Abort the page if the user is not admin
+
     db = current_app.config["db"]
 
     if request.method == "GET":
@@ -452,6 +525,10 @@ def rating_edit_page(rating_id):
             return f"Error updating rating: {str(e)}", 500
         
 def delete_rating_page(rating_id):
+    # Abort the page if the user is not admin
+    if not current_user.is_admin:
+        abort(401)
+
     # Veritabanı bağlantısını al
     db = current_app.config["db"]
     
@@ -462,6 +539,7 @@ def delete_rating_page(rating_id):
         return redirect(url_for("ratings_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
+    
 def ratings_stats_page():
     # Veritabanı bağlantısını al
     db = current_app.config["db"]

@@ -1,4 +1,6 @@
 from flask import render_template, current_app, abort, request, redirect, url_for, Flask
+from flask_login import LoginManager
+from user import get_user
 from config import connection
 import sys
 import views
@@ -7,9 +9,15 @@ sys.path.append("models")
 from models.database import Database
 
 app = Flask(__name__)
+lm = LoginManager()
 
 # Initialize database
+app.config.from_object("settings")
 app.config["db"] = Database()
+
+@lm.user_loader
+def load_user(user_id):
+    return get_user(user_id)
 
 
 if __name__ == '__main__':
@@ -18,6 +26,8 @@ if __name__ == '__main__':
     app.config["db"] = db
     
     # Add app url rules
+    app.add_url_rule("/login", view_func=views.login_page, methods=["GET", "POST"])
+    app.add_url_rule("/logout", view_func=views.logout_page)
     app.add_url_rule("/", view_func=views.home_page)
 
     app.add_url_rule("/titles", view_func=views.titles_page)
@@ -58,5 +68,7 @@ if __name__ == '__main__':
     app.add_url_rule("/akas/delete/<rating_id>", view_func=views.delete_rating_page, methods=["POST"])
     app.add_url_rule("/ratings/stats", view_func=views.ratings_stats_page)
     
+    lm.init_app(app)
+    lm.login_view = "login_page"
 
     app.run(debug=True, port=5000)

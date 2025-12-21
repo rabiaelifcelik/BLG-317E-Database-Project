@@ -24,10 +24,11 @@
                 <a href="{{ url_for('ratings_list_page') }}" class="btn-back">
                     ← Back to Ratings List
                 </a>
-                
+                {%if current_user.is_authenticated%}
                 <a href="{{ url_for('rating_edit_page', rating_id=rating.rating_id) }}" class="btn-view" style="background: #4facfe;">
                     <i class="fas fa-edit"></i> Edit Rating
                 </a>
+                {%endif%}
             </div>
         </div>
 
