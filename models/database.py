@@ -373,12 +373,16 @@ class Database:
         
         return person
     
-    def add_person(self, name, birth_year, death_year, profession, known_for):
+    def add_person(self, name, birth_year, death_year, profession, known_for, most_known_title):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
+
+        if (not most_known_title or str(most_known_title).strip() == "") and known_for:
+        # Virgülle ayrılmış listenin ilk elemanını al (Örn: "tt01,tt02" -> "tt01")
+            most_known_title = known_for.split(',')[0].strip()    
 
         """Add a new person to database"""
         with connection.cursor() as cursor:
@@ -389,19 +393,22 @@ class Database:
             new_id = f"nm{int(max_val) + 1:07d}"
             
             query = """
-                INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles, most_known_title)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(query, (new_id, name, birth_year, death_year, profession, known_for))
+            cursor.execute(query, (new_id, name, birth_year, death_year, profession, known_for, most_known_title))
             connection.commit()
         
         return new_id
     
-    def update_person(self, person_id, name, birth_year, death_year, profession, known_for):
+    def update_person(self, person_id, name, birth_year, death_year, profession, known_for, most_known_title):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             print("Failed to reconnect to the database.")
+
+        if (not most_known_title or str(most_known_title).strip() == "") and known_for:
+            most_known_title = known_for.split(',')[0].strip()    
 
         """Update an existing person in database"""
         with connection.cursor() as cursor:
@@ -411,10 +418,11 @@ class Database:
                     birthYear = %s, 
                     deathYear = %s, 
                     primaryProfession = %s, 
-                    knownForTitles = %s
+                    knownForTitles = %s,
+                    most_known_title = %s
                 WHERE nconst = %s
             """
-            cursor.execute(query, (name, birth_year, death_year, profession, known_for, person_id))
+            cursor.execute(query, (name, birth_year, death_year, profession, known_for, most_known_title, person_id))
             connection.commit()
         
         return True
@@ -435,15 +443,8 @@ class Database:
     
     def get_people_performance_stats(self):
         """
-        ULTIMATE PEOPLE ANALYTICS (5-Table Join & Subquery)
-        Complex query analyzing artists' career performance with:
-        - Subquery for efficient data sampling
-        - 5-table JOIN (people, principals, titles, ratings, akas)
-        - Aggregate functions (COUNT, AVG)
-        - GROUP BY and HAVING clauses
-        - Multiple sorting criteria
-        
-        Returns: Top 100 artists ranked by worldwide reach and average ratings
+        OPTIMIZED PEOPLE ANALYTICS (LIMITED PEOPLE SAMPLE)
+        Sadece 1900 sonrası doğan ilk 100 kişiyle istatistikler hesaplanır.
         """
         try:
             connection.ping(reconnect=True)
@@ -457,17 +458,20 @@ class Database:
                     p.primaryProfession,
                     COUNT(DISTINCT pr.tconst) as total_productions,
                     ROUND(AVG(r.average_rating), 2) as career_avg_rating,
-                    COUNT(DISTINCT a.region) as worldwide_reach
-                FROM people p
+                    COUNT(DISTINCT a.region) as worldwide_reach,
+                    COALESCE(GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', '), 'N/A') as expert_genres
+                FROM (
+                SELECT * FROM people 
+                WHERE knownForTitles IS NOT NULL -- Verisi dolu olanları seç
+                ORDER BY nconst ASC -- İndeks üzerinden hızlıca ilkleri çek
+                LIMIT 200
+                ) AS p
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
                 LEFT JOIN titles t ON pr.tconst = t.tconst
                 LEFT JOIN ratings r ON t.tconst = r.title_id
                 LEFT JOIN akas a ON t.tconst = a.titleId
-                WHERE p.birthYear IS NOT NULL
                 GROUP BY p.nconst, p.primaryName, p.primaryProfession
-                HAVING total_productions > 0
                 ORDER BY worldwide_reach DESC, career_avg_rating DESC
-                LIMIT 200
             """
             cursor.execute(query)
             stats = cursor.fetchall()
@@ -732,7 +736,6 @@ class Database:
                 LEFT JOIN principals pr ON t.tconst = pr.tconst AND (pr.category LIKE 'act%')
                 LEFT JOIN people p ON pr.nconst = p.nconst
                 GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
-                
                 ORDER BY r.average_rating DESC
             """
             cursor.execute(query)

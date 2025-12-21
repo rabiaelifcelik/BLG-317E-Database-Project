@@ -147,10 +147,9 @@ def person_add_page():
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
         form_known_for = request.form.get("known_for", "")
-        
+        form_most_known_title = request.form.get("most_known_title", None)
         db = current_app.config["db"]
-        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for)
-        
+        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
         return redirect(url_for('person_page', person_id=new_id))
 
 
@@ -169,9 +168,8 @@ def person_edit_page(person_id):
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
         form_known_for = request.form.get("known_for", "")
-        
-        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for)
-        
+        form_most_known_title = request.form.get("most_known_title", None)
+        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
         return redirect(url_for('person_page', person_id=person_id))
 
 
