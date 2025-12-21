@@ -22,6 +22,31 @@
             </div>
         </div>
 
+        <div class="search-section" style="margin: 20px 0;">
+            <form method="GET" action="{{ url_for('principals_page') }}" style="display: flex; gap: 10px; align-items: center;">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="🔍 Search by person, title, category, or job..." 
+                    value="{{ search_query if search_query else '' }}"
+                    style="flex: 1; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px;"
+                >
+                <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                {% if search_query %}
+                <a href="{{ url_for('principals_page') }}" style="padding: 12px 24px; background: #f44336; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+                {% endif %}
+            </form>
+            {% if search_query %}
+            <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                Showing results for: <strong>"{{ search_query }}"</strong>
+            </p>
+            {% endif %}
+        </div>
+
         {% if principals %}
         <div class="scrollable-content">
             <table class="principals-table">

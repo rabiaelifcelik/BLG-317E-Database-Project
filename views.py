@@ -61,8 +61,9 @@ def cast_page():
 
 def principals_page():
     db = current_app.config["db"]
-    principals = db.get_principals()
-    return render_template('principals.html', principals=principals)
+    search_query = request.args.get('search', '').strip()
+    principals = db.get_principals(search_query if search_query else None)
+    return render_template('principals.html', principals=principals, search_query=search_query)
 
 def principal_page(principal_id):
     db = current_app.config["db"]
