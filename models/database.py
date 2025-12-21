@@ -132,14 +132,37 @@ class Database:
 
 
 
-    def get_principals(self, search_query=None):
+    def get_principals(self, search_query=None, page=1, per_page=50):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
+        offset = (page - 1) * per_page
+
         with connection.cursor() as cursor:
+            # First, get the total count
+            if search_query:
+                count_query = """
+                    SELECT COUNT(*) as total
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    WHERE pe.primaryName LIKE %s 
+                       OR t.primaryTitle LIKE %s
+                       OR p.category LIKE %s
+                       OR p.job LIKE %s
+                """
+                search_param = f"%{search_query}%"
+                cursor.execute(count_query, (search_param, search_param, search_param, search_param))
+            else:
+                count_query = "SELECT COUNT(*) as total FROM principals"
+                cursor.execute(count_query)
+            
+            total_count = cursor.fetchone()['total']
+
+            # Then get the paginated data
             if search_query:
                 # Search in person name, title name, category, or job
                 query = """
@@ -161,10 +184,10 @@ class Database:
                        OR p.category LIKE %s
                        OR p.job LIKE %s
                     ORDER BY p.principal_id DESC
-                    LIMIT 200
+                    LIMIT %s OFFSET %s
                 """
                 search_param = f"%{search_query}%"
-                cursor.execute(query, (search_param, search_param, search_param, search_param))
+                cursor.execute(query, (search_param, search_param, search_param, search_param, per_page, offset))
             else:
                 query = """
                     SELECT 
@@ -181,11 +204,11 @@ class Database:
                     LEFT JOIN titles t ON p.tconst = t.tconst
                     LEFT JOIN people pe ON p.nconst = pe.nconst
                     ORDER BY p.principal_id DESC
-                    LIMIT 200
+                    LIMIT %s OFFSET %s
                 """
-                cursor.execute(query)
+                cursor.execute(query, (per_page, offset))
             principals = cursor.fetchall()
-        return principals
+        return principals, total_count
     
     def get_principal(self, principal_id):
         try:
