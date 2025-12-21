@@ -100,8 +100,9 @@ def cast_page():
 
 def principals_page():
     db = current_app.config["db"]
-    principals = db.get_principals()
-    return render_template('principals.html', principals=principals)
+    search_query = request.args.get('search', '').strip()
+    principals = db.get_principals(search_query if search_query else None)
+    return render_template('principals.html', principals=principals, search_query=search_query)
 
 def principal_page(principal_id):
     db = current_app.config["db"]
@@ -186,10 +187,9 @@ def person_add_page():
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
         form_known_for = request.form.get("known_for", "")
-        
+        form_most_known_title = request.form.get("most_known_title", None)
         db = current_app.config["db"]
-        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for)
-        
+        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
         return redirect(url_for('person_page', person_id=new_id))
 
 
@@ -208,9 +208,8 @@ def person_edit_page(person_id):
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
         form_known_for = request.form.get("known_for", "")
-        
-        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for)
-        
+        form_most_known_title = request.form.get("most_known_title", None)
+        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
         return redirect(url_for('person_page', person_id=person_id))
 
 
