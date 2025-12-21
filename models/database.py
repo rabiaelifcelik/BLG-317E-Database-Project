@@ -297,7 +297,6 @@ class Database:
                     FROM (
                         SELECT * FROM people 
                         WHERE primaryName LIKE %s 
-                        ORDER BY most_known_title IS NULL, primaryName 
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
@@ -313,7 +312,6 @@ class Database:
                         t.primaryTitle as most_known_title_name
                     FROM (
                         SELECT * FROM people 
-                        ORDER BY most_known_title IS NULL, primaryName 
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
@@ -442,10 +440,7 @@ class Database:
         return True
     
     def get_people_performance_stats(self):
-        """
-        OPTIMIZED PEOPLE ANALYTICS (LIMITED PEOPLE SAMPLE)
-        Sadece 1900 sonrası doğan ilk 100 kişiyle istatistikler hesaplanır.
-        """
+      
         try:
             connection.ping(reconnect=True)
         except Exception:
