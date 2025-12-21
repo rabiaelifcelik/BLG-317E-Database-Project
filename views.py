@@ -184,13 +184,52 @@ def person_add_page():
         return redirect(url_for('person_page', person_id=new_id))
 
 
-def akas_list_page():
+def person_edit_page(person_id):
+    """Edit person page"""
     db = current_app.config["db"]
-    akas = db.get_akas_list() # Use the new list method
+    
+    if request.method == "GET":
+        person = db.get_person(person_id)
+        if person == None:
+            abort(404)
+        return render_template('person_edit.html', person=person)
+    else:
+        form_name = request.form["name"]
+        form_birth = request.form.get("birth_year", None)
+        form_death = request.form.get("death_year", None)
+        form_profession = request.form.get("profession", "")
+        form_known_for = request.form.get("known_for", "")
+        
+        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for)
+        
+        return redirect(url_for('person_page', person_id=person_id))
+
+
+def person_delete_page(person_id):
+    """Delete person"""
+    db = current_app.config["db"]
+    db.delete_person(person_id)
+    return redirect(url_for('people_page'))
+
+
+def people_statistics_page():
+    """People performance statistics page - Complex analytics"""
+    db = current_app.config["db"]
+    stats = db.get_people_performance_stats()
+    return render_template('people_statistics.html', stats=stats)
+
+
+def akas_list_page():
+
+    search_query = request.args.get("q")
+
+    db = current_app.config["db"]
+    akas = db.get_akas_list(search_query=search_query) # Use the new list method
     
     return render_template(
         "akas_list.html",
-        akas=akas
+        akas=akas,
+        search_query=search_query
     )
 
 # NEW VIEW FUNCTION: akas_details_page (For the details of a single alternate title)
@@ -307,12 +346,27 @@ def akas_stats_page():
     return render_template("akas_statistics.html", stats=stats)
 # NEW VIEW FUNCTION: ratings_list_page (For the list of all ratings)
 def ratings_list_page():
+    min_val = request.args.get("min")
+    
+    # DEBUG: Terminale yazdıralım bakalım veri geliyor mu?
+    print(f"--- FİLTRELEME İSTEĞİ: {min_val} ---")
+    
+    # Gelen veri boş mu kontrol et, doluysa sayıya çevir
+    if min_val and min_val.strip() != "":
+        try:
+            min_val = float(min_val)
+        except ValueError:
+            min_val = None
+    else:
+        min_val = None
+
     db = current_app.config["db"]
-    ratings = db.get_ratings_list() # Use the new list method
+    ratings = db.get_ratings_list(min_rating=min_val) # Use the new list method
     
     return render_template(
         "ratings_list.html",
-        ratings=ratings
+        ratings=ratings,
+        current_min=min_val
     )
 
 # NEW VIEW FUNCTION: ratings_details_page (For the details of a single rating entry)
@@ -388,3 +442,12 @@ def delete_rating_page(rating_id):
         return redirect(url_for("ratings_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
+def ratings_stats_page():
+    # Veritabanı bağlantısını al
+    db = current_app.config["db"]
+    
+    # O yazdığımız 5 tablolu fonksiyonu çağır
+    stats = db.get_ratings_statistics()
+    
+    # HTML sayfasına gönder
+    return render_template("ratings_statistics.html", stats=stats)

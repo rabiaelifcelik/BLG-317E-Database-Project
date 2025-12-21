@@ -78,7 +78,7 @@ class Database:
         #     print("title not found in database.")
 
 
-    def get_titles(self, limit=200):
+    def get_titles(self, limit=200, search_title=None):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -86,15 +86,15 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            # Fetch 10 movies for testing
-            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit} ;")
-            titles = cursor.fetchall()
+            if search_title is None:
+                cursor.execute(f"SELECT * FROM titles LIMIT {limit}")
 
-        # From sample database
-        # titles = []
-        # for title_id, title in self.titles.items():
-        #     title_= Titles(title.title_id, title.primary_title, title.original_title, title.is_adult, title.start_year, title.end_year, title.runtime_mins, title.genres)
-        #     titles.append((title_id, title_))
+            else:
+                query = """
+                    SELECT * FROM titles WHERE titles.primaryName LIKE '%%s%';
+                """
+                cursor.execute(query, (search_title))
+            titles = cursor.fetchall()
 
         return titles
     
@@ -134,8 +134,8 @@ class Database:
                                 WHERE FIND_IN_SET(p.nconst, c.writers)
                             ) AS writers
 
-                        FROM crew c
-                        WHERE c.tconst = '{title_id}';
+                        FROM crew c LEFT JOIN titles t ON c.tconst = t.tconst
+                        WHERE t.tconst = '{title_id}';
                         """
             
             cursor.execute(query)
@@ -156,7 +156,7 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE t%'")
+            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 't%'")
             max_id = cursor.fetchone()
             new_id = f"t{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
             query = """
@@ -353,7 +353,7 @@ class Database:
                     COUNT(DISTINCT p.principal_id) as total_principals,
                     COUNT(DISTINCT p.tconst) as total_titles,
                     COUNT(DISTINCT p.nconst) as total_people,
-                    AVG(r.averageRating) as avg_title_rating,
+                    AVG(r.average_rating) as avg_title_rating,
                     GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', ') as all_genres,
                     (
                         SELECT pe.primaryName 
@@ -378,42 +378,47 @@ class Database:
         return stats
 
     def get_people(self, search_query=None):
-        """Get all people from database"""
+        """Optimized people listing with fast subquery approach"""
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
-            # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
-        with connection:
-            cursor = connection.cursor()
-            
-            # Base query
-            query = """
-                SELECT 
-                    p.nconst,
-                    p.primaryName,
-                    p.birthYear,
-                    p.deathYear,
-                    p.primaryProfession,
-                    p.knownForTitles,
-                    p.most_known_title,
-                    t.primaryTitle as most_known_title_name
-                FROM people p
-                LEFT JOIN titles t ON p.most_known_title = t.tconst
-            """
-            
-            # Add search condition if search_query is provided
+        with connection.cursor() as cursor:
             if search_query:
-                query += " WHERE p.primaryName LIKE %s ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
+                # Search case: Filter first, then JOIN (faster!)
+                query = """
+                    SELECT 
+                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.primaryProfession, p.knownForTitles, p.most_known_title,
+                        t.primaryTitle as most_known_title_name
+                    FROM (
+                        SELECT * FROM people 
+                        WHERE primaryName LIKE %s 
+                        ORDER BY most_known_title IS NULL, primaryName 
+                        LIMIT 200
+                    ) AS p
+                    LEFT JOIN titles t ON p.most_known_title = t.tconst
+                """
                 search_param = f"%{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
-                query += " ORDER BY p.most_known_title IS NULL, p.primaryName LIMIT 200"
+                # No search: Get first 200 rows, then JOIN (fastest!)
+                query = """
+                    SELECT 
+                        p.nconst, p.primaryName, p.birthYear, p.deathYear,
+                        p.primaryProfession, p.knownForTitles, p.most_known_title,
+                        t.primaryTitle as most_known_title_name
+                    FROM (
+                        SELECT * FROM people 
+                        ORDER BY most_known_title IS NULL, primaryName 
+                        LIMIT 200
+                    ) AS p
+                    LEFT JOIN titles t ON p.most_known_title = t.tconst
+                """
                 cursor.execute(query)
             
             people = cursor.fetchall()
-        
         return people
     
 
@@ -475,10 +480,11 @@ class Database:
 
         """Add a new person to database"""
         with connection.cursor() as cursor:
-            # Generate nconst (simple approach - in real app use better method)
-            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 'nm%'")
-            max_id = cursor.fetchone()
-            new_id = f"nm{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
+            # Generate nconst - COALESCE ensures 0 if table is empty (null-safe)
+            cursor.execute("SELECT COALESCE(MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)), 0) as max_num FROM people WHERE nconst LIKE 'nm%'")
+            result = cursor.fetchone()
+            max_val = result['max_num'] if isinstance(result, dict) else result[0]
+            new_id = f"nm{int(max_val) + 1:07d}"
             
             query = """
                 INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
@@ -488,28 +494,116 @@ class Database:
             connection.commit()
         
         return new_id
+    
+    def update_person(self, person_id, name, birth_year, death_year, profession, known_for):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        """Update an existing person in database"""
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE people 
+                SET primaryName = %s, 
+                    birthYear = %s, 
+                    deathYear = %s, 
+                    primaryProfession = %s, 
+                    knownForTitles = %s
+                WHERE nconst = %s
+            """
+            cursor.execute(query, (name, birth_year, death_year, profession, known_for, person_id))
+            connection.commit()
+        
+        return True
+    
+    def delete_person(self, person_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        """Delete a person from database"""
+        with connection.cursor() as cursor:
+            query = "DELETE FROM people WHERE nconst = %s"
+            cursor.execute(query, (person_id,))
+            connection.commit()
+        
+        return True
+    
+    def get_people_performance_stats(self):
+        """
+        ULTIMATE PEOPLE ANALYTICS (5-Table Join & Subquery)
+        Complex query analyzing artists' career performance with:
+        - Subquery for efficient data sampling
+        - 5-table JOIN (people, principals, titles, ratings, akas)
+        - Aggregate functions (COUNT, AVG)
+        - GROUP BY and HAVING clauses
+        - Multiple sorting criteria
+        
+        Returns: Top 100 artists ranked by worldwide reach and average ratings
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    p.primaryName,
+                    p.primaryProfession,
+                    COUNT(DISTINCT pr.tconst) as total_productions,
+                    ROUND(AVG(r.averageRating), 2) as career_avg_rating,
+                    COUNT(DISTINCT a.region) as worldwide_reach
+                FROM people p
+                LEFT JOIN principals pr ON p.nconst = pr.nconst
+                LEFT JOIN titles t ON pr.tconst = t.tconst
+                LEFT JOIN ratings r ON t.tconst = r.tconst
+                LEFT JOIN akas a ON t.tconst = a.titleId
+                WHERE p.birthYear IS NOT NULL
+                GROUP BY p.nconst, p.primaryName, p.primaryProfession
+                HAVING total_productions > 0
+                ORDER BY worldwide_reach DESC, career_avg_rating DESC
+                LIMIT 200
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
 
 
 
 # --- Add this method to the Database class in models/database.py ---
-
-    def get_akas_list(self):
+    def get_akas_list(self, search_query=None):
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass
 
-        """Fetches a limited list of Akas for the main list page."""
         with connection.cursor() as cursor:
-            # Join with titles to show the primary title for context
-            query = """
-                SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle 
-                FROM akas a
-                JOIN titles t ON a.titleId = t.tconst
-                LIMIT 200;
-            """
-            cursor.execute(query)
+            if search_query:
+                # DURUM 1: Kullanıcı Arama Yaptıysa (Mecburen sıralayıp arayacağız)
+                # İpucu: Az önceki 'CREATE INDEX' kodunu çalıştırdıysan burası da hızlı olur.
+                query = (
+                    "SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle "
+                    "FROM akas a "
+                    "JOIN titles t ON a.titleId = t.tconst "
+                    "WHERE a.region LIKE %s "
+                    "LIMIT 200"
+                )
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param,))
+            else:
+                # DURUM 2: Sayfa İlk Açılıyor (Arama Yok)
+                # HIZ HİLESİ: 'ORDER BY' yok! Sadece ilk bulduğun 200 taneyi al ve çık.
+                # Ayrıca önce 200 satırı 'akas'tan alıp SONRA 'titles' ile birleştiriyoruz.
+                query = (
+                    "SELECT sub_a.titleId, sub_a.ordering, sub_a.title, sub_a.region, sub_a.language, t.primaryTitle "
+                    "FROM (SELECT * FROM akas LIMIT 200) sub_a "
+                    "JOIN titles t ON sub_a.titleId = t.tconst"
+                )
+                cursor.execute(query)
+            
             akas_list = cursor.fetchall()
         return akas_list
 
@@ -522,10 +616,7 @@ class Database:
 
         """Fetches a single, detailed AKA record."""
         with connection.cursor() as cursor:
-            query = f"""
-                SELECT * FROM akas 
-                WHERE titleId = '{title_id}' AND ordering = {ordering};
-            """
+            query = f"SELECT * FROM akas WHERE titleId = '{title_id}' AND ordering = {ordering}"
             cursor.execute(query)
             aka = cursor.fetchone()
         return aka
@@ -619,30 +710,41 @@ class Database:
             cursor.execute(query)
             stats = cursor.fetchall()
         return stats
-    def get_ratings_list(self):
+    def get_ratings_list(self, min_rating=None):
         try:
             connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            # Handle connection failure if ping fails
-            print("Failed to reconnect to the database.")
+        except Exception:
+            pass
 
         with connection.cursor() as cursor:
-            # Revert to LEFT JOIN to fetch the actual title name
-            query = """
+            # 1. Temel Sorgu (Henüz LIMIT veya WHERE yok)
+            base_query = """
                 SELECT 
                     r.rating_id,
-                    r.title_id,      /* <--- BURAYI DÜZELTİN (r.titleId yerine r.title_id) */
+                    r.title_id,
                     r.average_rating,
                     r.num_votes,
                     t.primaryTitle 
                 FROM ratings r
                 LEFT JOIN titles t ON r.title_id = t.tconst
-                LIMIT 200;
             """
-            cursor.execute(query)
+            
+            # 2. Karar Anı: Filtre var mı?
+            if min_rating is not None:
+                # DİKKAT: SQL'de sıra şöyledir: WHERE -> ORDER BY -> LIMIT
+                # O yüzden önce WHERE ekliyoruz, sonuna LIMIT yapıştırıyoruz.
+                full_query = base_query + " WHERE r.average_rating >= %s ORDER BY r.num_votes DESC LIMIT 200"
+                
+                # Tek elemanlı tuple kuralı: (min_rating, ) virgül şart!
+                cursor.execute(full_query, (min_rating,))
+            else:
+                # Filtre yoksa direkt LIMIT ekle
+                full_query = base_query + " LIMIT 200"
+                cursor.execute(full_query)
+            
             ratings_list = cursor.fetchall()
         return ratings_list
-
+    
     def get_single_rating(self, rating_id):
         try:
             connection.ping(reconnect=True)
@@ -652,7 +754,6 @@ class Database:
 
         """Fetches a single, detailed Ratings record by its Primary Key."""
         with connection.cursor() as cursor:
-            # Note: rating_id is the primary key defined in the latest schema
             query = f"""
                 SELECT 
                     r.rating_id,
@@ -662,10 +763,9 @@ class Database:
                     t.primaryTitle 
                 FROM ratings r
                 JOIN titles t ON r.title_id = t.tconst
-                WHERE r.rating_id = {rating_id};
+                WHERE r.rating_id = {rating_id}
             """
             cursor.execute(query)
-            
             rating = cursor.fetchone()
             print(rating)
         return rating
@@ -702,3 +802,37 @@ class Database:
             cursor.execute(query, (rating_id))
             connection.commit()
         return True
+
+    def get_ratings_statistics(self):
+        """
+        ULTIMATE 5-TABLE JOIN QUERY (Düzeltilmiş Versiyon)
+        """
+        try:
+            connection.ping(reconnect=True)
+        except Exception:
+            pass
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    t.primaryTitle,
+                    r.average_rating,
+                    r.num_votes,
+                    COALESCE(pd.primaryName, 'Unknown') as directors,
+                    COUNT(DISTINCT a.region) as global_reach,
+                    GROUP_CONCAT(DISTINCT p.primaryName SEPARATOR ', ') as top_cast
+                FROM 
+                    (SELECT * FROM ratings LIMIT 200) r
+                JOIN titles t ON r.title_id = t.tconst
+                LEFT JOIN crew c ON t.tconst = c.tconst
+                LEFT JOIN people pd ON SUBSTRING_INDEX(c.directors, ',', 1) = pd.nconst
+                LEFT JOIN akas a ON t.tconst = a.titleId
+                LEFT JOIN principals pr ON t.tconst = pr.tconst AND (pr.category LIKE 'act%')
+                LEFT JOIN people p ON pr.nconst = p.nconst
+                GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
+                
+                ORDER BY r.average_rating DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats

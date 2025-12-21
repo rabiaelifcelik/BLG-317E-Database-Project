@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Person{% endblock %}
+
+{% block content %}
+<div class="person-detail-container">
+    <div class="back-nav">
+        <a href="{{ url_for('person_page', person_id=person.nconst) }}" class="btn-back">← Back to Person</a>
+    </div>
+
+    <div class="add-form-container">
+        <h1>Edit Person</h1>
+        
+        <form method="POST" class="add-form">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required value="{{ person.primaryName }}">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="birth_year">Birth Year</label>
+                    <input type="number" id="birth_year" name="birth_year" min="1800" max="2025" value="{{ person.birthYear if person.birthYear else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="death_year">Death Year</label>
+                    <input type="number" id="death_year" name="death_year" min="1800" max="2025" value="{{ person.deathYear if person.deathYear else '' }}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="profession">Primary Profession</label>
+                <input type="text" id="profession" name="profession" value="{{ person.primaryProfession if person.primaryProfession else '' }}">
+                <small>Separate multiple professions with commas</small>
+            </div>
+
+            <div class="form-group">
+                <label for="known_for">Known For Titles</label>
+                <input type="text" id="known_for" name="known_for" value="{{ person.knownForTitles if person.knownForTitles else '' }}">
+                <small>Enter title IDs separated by commas (optional)</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Update Person</button>
+                <a href="{{ url_for('person_page', person_id=person.nconst) }}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.add-form-container {
+    max-width: 800px;
+    margin: 30px auto;
+    background: rgba(129, 137, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.add-form-container h1 {
+    color: #fff;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: #ddd;
+    font-weight: 500;
+    font-size: 0.95em;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 12px 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-group small {
+    color: #aaa;
+    font-size: 0.85em;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.btn-submit {
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-cancel {
+    padding: 12px 40px;
+    background: #6c757d;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .add-form-container {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}

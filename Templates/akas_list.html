@@ -19,6 +19,19 @@
                 <i class="fas fa-chart-pie"></i>
                 <span>Statistics</span>
             </a>
+            <form action="{{ url_for('akas_list_page') }}" method="get" style="display: flex; gap: 10px; align-items: center; background: #fff; padding: 5px 15px; border-radius: 25px; border: 1px solid #eee;">
+                <input type="text" name="q" placeholder="Search Region (TR, US)..." 
+                       value="{{ search_query if search_query else '' }}"
+                       style="border: none; outline: none; padding: 5px;">
+                <button type="submit" style="background: none; border: none; cursor: pointer; color: #2c3e50;">
+                    <i class="fas fa-search"></i>
+                </button>
+                {% if search_query %}
+                <a href="{{ url_for('akas_list_page') }}" style="color: #e74c3c; text-decoration: none; font-size: 12px;">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </form>
         </div>
 
         <div class="stats-bar" style="text-align: center; margin-bottom: 20px; color: #ddd; opacity: 0.8;">
