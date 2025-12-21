@@ -15,9 +15,11 @@
                 <a href="{{ url_for('people_statistics_page') }}" class="btn-statistics">
                     📊 View Analytics
                 </a>
+                {%if current_user.is_admin%}
                 <a href="{{ url_for('person_add_page') }}" class="btn-add">
                     <i class="fas fa-user-plus"></i> Add New Person
                 </a>
+                {%endif%}
             </div>
         </div>
 

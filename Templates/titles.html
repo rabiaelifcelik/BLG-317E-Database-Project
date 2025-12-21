@@ -10,10 +10,12 @@
                                 <h1 class="title"><i class="fas fa-star"></i>  Titles</h1>
 
                                 <div style="display:flex; flex-direction: column;">
+                                        {% if current_user.is_admin%}
                                         <a href="{{ url_for('title_add_page') }}" class="btn-add">
                                                 <i class="fas fa-plus"></i>
                                                 <span>Add New Titles!</span>
                                         </a>
+                                        {% endif %}
 
                                         <a href="{{ url_for('titles_statistics_page') }}" class="btn-search">
                                                 <span>Stats!</span>

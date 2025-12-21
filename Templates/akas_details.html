@@ -19,9 +19,11 @@
                     <i class="fas fa-arrow-left"></i> Back to List
                 </a>
                 
+                {% if current_user.is_authenticated %}
                 <a href="{{ url_for('aka_edit_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-edit">
                     <i class="fas fa-edit"></i> Edit
                 </a>
+                {% endif %}
 
                 </div>
         </div>

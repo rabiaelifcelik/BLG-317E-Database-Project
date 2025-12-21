@@ -11,10 +11,12 @@
                 <h1><i class="fas fa-language"></i> Alternate Titles</h1>
                 <p class="subtitle">International titles and regional localizations</p>
             </div>
+            {% if current_user.is_admin%}
             <a href="{{ url_for('aka_add_page') }}" class="btn-add">
                 <i class="fas fa-plus"></i>
                 <span>Add New AKA!</span>
             </a>
+            {% endif %}
             <a href="{{ url_for('akas_stats_page') }}" class="btn-add" style="background-color: #f39c12; margin-right: 10px;">
                 <i class="fas fa-chart-pie"></i>
                 <span>Statistics</span>
@@ -67,11 +69,14 @@
                         <a href="{{ url_for('akas_details_page', title_id=aka.titleId, ordering=aka.ordering) }}" class="btn-view">
                             View Details →
                         </a>
+
+                        {% if current_user.is_admin %}
                         <form action="{{ url_for('delete_aka_page', title_id=aka.titleId, ordering=aka.ordering) }}" method="POST" onsubmit="return confirm('Bu kaydı silmek istediğine emin misin?');" style="margin: 0;">
                             <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; height: 100%;">
-                                Sil 🗑️
+                                Delete 🗑️
                             </button>
                         </form>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -14,11 +14,12 @@
             </div>
 
             <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
-                
+                {% if current_user.is_admin %}
                 <a href="{{ url_for('rating_add_page') }}" class="btn-add" 
                 style="background: #f39c12; color: white; padding: 0 20px; text-decoration: none; border-radius: 20px; height: 40px; display: flex; align-items: center; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     + Add New
                 </a>
+                {% endif %}
 
                 <a href="{{ url_for('ratings_stats_page') }}" class="btn-stats" 
                 style="background: #8e44ad; color: white; padding: 0 20px; text-decoration: none; border-radius: 20px; height: 40px; display: flex; align-items: center; gap: 8px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -76,11 +77,13 @@
                     <a href="{{ url_for('ratings_details_page', rating_id=rating.rating_id) }}" class="btn-view">
                         View Details →
                     </a>
+                    {% if current_user.is_admin %}
                     <form action="{{ url_for('delete_rating_page', rating_id=rating.rating_id) }}" method="POST" onsubmit="return confirm('Bu kaydı silmek istediğine emin misin?');" style="margin: 0;">
                             <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; height: 100%;">
-                                Sil 🗑️
+                                Delete 🗑️
                             </button>
                     </form>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
