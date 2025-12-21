@@ -132,7 +132,7 @@ class Database:
 
 
 
-    def get_principals(self):
+    def get_principals(self, search_query=None):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -140,24 +140,50 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            query = """
-                SELECT 
-                    p.principal_id,
-                    p.tconst,
-                    t.primaryTitle as title_name,
-                    p.ordering,
-                    p.nconst,
-                    pe.primaryName as person_name,
-                    p.category,
-                    p.job,
-                    p.characters
-                FROM principals p
-                LEFT JOIN titles t ON p.tconst = t.tconst
-                LEFT JOIN people pe ON p.nconst = pe.nconst
-                ORDER BY p.principal_id DESC
-                LIMIT 200
-            """
-            cursor.execute(query)
+            if search_query:
+                # Search in person name, title name, category, or job
+                query = """
+                    SELECT 
+                        p.principal_id,
+                        p.tconst,
+                        t.primaryTitle as title_name,
+                        p.ordering,
+                        p.nconst,
+                        pe.primaryName as person_name,
+                        p.category,
+                        p.job,
+                        p.characters
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    WHERE pe.primaryName LIKE %s 
+                       OR t.primaryTitle LIKE %s
+                       OR p.category LIKE %s
+                       OR p.job LIKE %s
+                    ORDER BY p.principal_id DESC
+                    LIMIT 200
+                """
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param, search_param, search_param, search_param))
+            else:
+                query = """
+                    SELECT 
+                        p.principal_id,
+                        p.tconst,
+                        t.primaryTitle as title_name,
+                        p.ordering,
+                        p.nconst,
+                        pe.primaryName as person_name,
+                        p.category,
+                        p.job,
+                        p.characters
+                    FROM principals p
+                    LEFT JOIN titles t ON p.tconst = t.tconst
+                    LEFT JOIN people pe ON p.nconst = pe.nconst
+                    ORDER BY p.principal_id DESC
+                    LIMIT 200
+                """
+                cursor.execute(query)
             principals = cursor.fetchall()
         return principals
     
