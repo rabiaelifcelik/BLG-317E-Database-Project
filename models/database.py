@@ -40,7 +40,7 @@ class Database:
         #     print("title not found in database.")
 
 
-    def get_titles(self, limit=200):
+    def get_titles(self, limit=200, search_title=None):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -48,14 +48,15 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT tconst, primaryTitle, startYear, genres FROM titles LIMIT {limit}")
-            titles = cursor.fetchall()
+            if search_title is None:
+                cursor.execute(f"SELECT * FROM titles LIMIT {limit}")
 
-        # From sample database
-        # titles = []
-        # for title_id, title in self.titles.items():
-        #     title_= Titles(title.title_id, title.primary_title, title.original_title, title.is_adult, title.start_year, title.end_year, title.runtime_mins, title.genres)
-        #     titles.append((title_id, title_))
+            else:
+                query = """
+                    SELECT * FROM titles WHERE titles.primaryName LIKE '%%s%';
+                """
+                cursor.execute(query, (search_title))
+            titles = cursor.fetchall()
 
         return titles
     
@@ -95,8 +96,8 @@ class Database:
                                 WHERE FIND_IN_SET(p.nconst, c.writers)
                             ) AS writers
 
-                        FROM crew c
-                        WHERE c.tconst = '{title_id}';
+                        FROM crew c LEFT JOIN titles t ON c.tconst = t.tconst
+                        WHERE t.tconst = '{title_id}';
                         """
             
             cursor.execute(query)
@@ -645,6 +646,7 @@ class Database:
             
             ratings_list = cursor.fetchall()
         return ratings_list
+    
     def get_single_rating(self, rating_id):
         try:
             connection.ping(reconnect=True)
