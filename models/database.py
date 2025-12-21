@@ -1,4 +1,3 @@
-from titles import Titles
 from config import connection
 import json
 import pymysql
@@ -26,8 +25,46 @@ class Database:
             print("Failed to reconnect to the database.")
             
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM titles WHERE tconst = '{title_key}'")
+            # Fetch 10 movies for testing
+            query = f"""
+                SELECT  t.tconst,
+                CASE
+                    WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
+                        CASE
+                            WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
+                                CONCAT(
+                                    pt.primaryTitle,
+                                    ' (S',
+                                    LPAD(e.seasonNumber, 2, '0'),
+                                    'E',
+                                    LPAD(e.episodeNumber, 2, '0'),
+                                    ')'
+                                )
+                            ELSE
+                                pt.primaryTitle
+                        END
+                    ELSE
+                        t.primaryTitle
+                END AS primaryTitle,
+
+                t.primaryTitle AS original_title,
+                t.titleType,
+                t.startYear,
+                t.endYear,
+                t.isAdult,
+                t.runtimeMinutes,
+                t.genres
+
+            FROM titles t
+            LEFT JOIN episode e ON e.tconst = t.tconst
+            LEFT JOIN titles pt ON pt.tconst = e.parentTconst
+
+            WHERE t.tconst = "{title_key}";
+            """
+
+            cursor.execute(query)
             title = cursor.fetchone()
+            print(title)
 
         if title is not None or "":
             return title
@@ -39,27 +76,67 @@ class Database:
         # else:
         #     print("title not found in database.")
 
-
-    def get_titles(self, limit=200, search_title=None):
+    def get_titles(self, limit=200, search_title=None, sort = 'default', group = None):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
+        order_by_mapping = {
+            'oldest': 'startYear ASC',
+            'newest': 'startYear DESC',
+            'content-name': 'primaryTitle ASC',
+            'default': 'tconst ASC'  # default
+        }
+        order_by = order_by_mapping.get(sort, 'tconst ASC')
+
+        
+
         with connection.cursor() as cursor:
             if search_title is None:
-                cursor.execute(f"SELECT * FROM titles LIMIT {limit}")
+                query = f"SELECT * FROM titles ORDER BY {order_by} LIMIT {limit};"
 
             else:
-                query = """
-                    SELECT * FROM titles WHERE titles.primaryName LIKE '%%s%';
+                query = f"""
+                    SELECT * FROM titles WHERE titles.primaryTitle LIKE '%{search_title}%' ORDER BY {order_by} LIMIT {limit};
                 """
-                cursor.execute(query, (search_title))
+
+            if group is not None:
+                query = f"SELECT COUNT({group}) as count, {group} as value from titles group by {group} LIMIT {limit};"
+
+                if group == "genres":
+                    query = f"""WITH RECURSIVE genre_split AS (
+                                    SELECT
+                                        tconst,
+                                        SUBSTRING_INDEX(genres, ',', 1) AS genre,
+                                        SUBSTRING(genres, LENGTH(SUBSTRING_INDEX(genres, ',', 1)) + 2) AS rest
+                                    FROM titles
+                                    WHERE genres IS NOT NULL
+
+                                    UNION ALL
+
+                                    SELECT
+                                        tconst,
+                                        SUBSTRING_INDEX(rest, ',', 1),
+                                        SUBSTRING(rest, LENGTH(SUBSTRING_INDEX(rest, ',', 1)) + 2)
+                                    FROM genre_split
+                                    WHERE rest <> ''
+                                )
+
+                                SELECT
+                                    genre as value,
+                                    COUNT(*) AS count
+                                FROM genre_split
+                                GROUP BY value
+                                ORDER BY count DESC
+                                LIMIT 10;
+                                """
+                
+            cursor.execute(query)
             titles = cursor.fetchall()
 
-        return titles
-    
+        return titles    
 
     def get_crew(self,title_id):
         try:
@@ -129,6 +206,37 @@ class Database:
             connection.commit()
         
         return new_id
+    
+    def delete_title(self, title_id):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                DELETE FROM titles
+                WHERE tconst = %s
+            """
+            cursor.execute(query, (title_id))
+            connection.commit()
+        return True
+    
+    def update_title(self, titleId, primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE titles 
+                SET  primaryTitle = %s, originalTitle = %s, titleType = %s, isAdult = %s, startYear = %s, endYear = %s, runtimeMinutes = %s, genres = %s
+                WHERE tconst = %s
+            """
+            cursor.execute(query, (primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres, titleId))
+            connection.commit()
+        return True
 
 
 
@@ -144,23 +252,52 @@ class Database:
                 SELECT 
                     p.principal_id,
                     p.tconst,
-                    t.primaryTitle as title_name,
+
+                    CASE
+                        WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
+                            CASE
+                                WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
+                                    CONCAT(
+                                        pt.primaryTitle,
+                                        ' (S',
+                                        LPAD(e.seasonNumber, 2, '0'),
+                                        'E',
+                                        LPAD(e.episodeNumber, 2, '0'),
+                                        ')'
+                                    )
+                                ELSE
+                                    pt.primaryTitle
+                            END
+                        ELSE
+                            t.primaryTitle
+                    END AS title_name,
+
                     p.ordering,
                     p.nconst,
-                    pe.primaryName as person_name,
+                    pe.primaryName AS person_name,
                     p.category,
                     p.job,
                     p.characters
+
                 FROM principals p
+
                 LEFT JOIN titles t ON p.tconst = t.tconst
+                LEFT JOIN episode e ON e.tconst = p.tconst
+                LEFT JOIN titles pt ON pt.tconst = e.parentTconst
                 LEFT JOIN people pe ON p.nconst = pe.nconst
-                ORDER BY p.principal_id DESC
-                LIMIT 200
+
+                ORDER BY p.principal_id DESC 
+                LIMIT 200;
             """
             cursor.execute(query)
             principals = cursor.fetchall()
+            print(principals)
         return principals
-    
+
+
+
+
+        
     def get_principal(self, principal_id):
         try:
             connection.ping(reconnect=True)
