@@ -630,10 +630,12 @@ class Database:
                     t.startYear,
                     t.titleType,
                     pr.category,
-                    pr.characters
+                    GROUP_CONCAT(pc.character_name SEPARATOR ', ') as characters
                 FROM principals pr
                 JOIN titles t ON pr.tconst = t.tconst
+                LEFT JOIN principal_characters pc ON pr.principal_id = pc.principal_id
                 WHERE pr.nconst = %s
+                GROUP BY pr.principal_id, t.tconst, t.primaryTitle, t.startYear, t.titleType, pr.category
                 ORDER BY t.startYear DESC
                 LIMIT 20
             """
@@ -672,7 +674,6 @@ class Database:
         except pymysql.OperationalError:
             print("Failed to reconnect to the database.")
 
-        """Update an existing person in database"""
         with connection.cursor() as cursor:
             query = """
                 UPDATE people 

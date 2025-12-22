@@ -65,46 +65,47 @@
 }
 
 .rating-card {
-    background: rgba(129, 137, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .rating-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.3);
 }
 
 .rating-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 15px;
     min-height: 60px;
 }
 
 .rating-header h3 {
     margin: 0;
-    color: #ddff44;
+    color: #ffd700;
     font-size: 1.3em;
-    font-weight: 400;
+    font-weight: 600;
 }
 
 .rating-id {
     font-size: 0.8em;
-    color: #aaa;
+    color: rgba(255, 255, 255, 0.6);
     font-family: monospace;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 .rating-info {
@@ -124,14 +125,14 @@
 }
 
 .label, .info-label {
-    font-weight: 500;
-    color: #ddd;
+    font-weight: 600;
+    color: #ffd700;
     font-size: 0.92em;
 }
 
 .value, .info-value {
     color: white;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .rating-actions {
@@ -141,18 +142,23 @@
 }
 
 .btn-view {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 20px;
-    background: #007bff;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     font-size: 0.95em;
 }
 
 .btn-view:hover {
-    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
     color: white;
 }
 
@@ -172,13 +178,25 @@
     margin-bottom: 20px;
 }
 .btn-back {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 20px;
-    background: #6c757d;
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
 /* Büyük Header Alanı (Avatar ve Başlık) */
@@ -188,11 +206,12 @@
     gap: 30px;
     margin-bottom: 40px;
     padding: 30px;
-    /* Sevdiğiniz mor gradient */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .rating-avatar {
@@ -209,18 +228,19 @@
 .rating-title h1 {
     margin: 0 0 10px 0;
     font-size: 2.3em;
-    color: white;
+    color: #ffd700;
     font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
-    font-weight: 300;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    font-weight: 600;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .rating-id-badge {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.2);
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.9em;
     font-family: monospace;
+    color: white;
 }
 
 /* Detay Grid Yapısı */
@@ -232,20 +252,21 @@
 
 /* Detay Kartları */
 .info-card {
-    background: rgba(129, 137, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .info-card h2 {
     margin-top: 0;
-    color: #ddff44;
-    border-bottom: 2px solid #667eea;
+    color: #ffd700;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
     padding-bottom: 10px;
     margin-bottom: 20px;
+    font-weight: 600;
 }
 
 .info-list {
@@ -269,13 +290,14 @@
 /* ==================== ADD FORM STYLES (Ortak Form Stili) ==================== */
 
 .form-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 40px;
     max-width: 800px;
     margin: 30px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .form-group {

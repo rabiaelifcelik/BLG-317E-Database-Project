@@ -16,6 +16,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 30px;
     padding: 60px 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .coming-soon-icon {
@@ -36,6 +37,8 @@
 .coming-soon-content h1 {
     font-size: 48px;
     margin-bottom: 10px;
+    color: #ffd700;
+    font-weight: 600;
 }
 
 .coming-soon-content h2 {
@@ -112,15 +115,17 @@
     border-radius: 10px;
     color: white;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
 .alt-link:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 215, 0, 0.5);
     transform: translateY(-2px);
     color: #ffd700;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
 }
 
 .progress-indicator {
