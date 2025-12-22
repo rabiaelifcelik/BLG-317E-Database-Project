@@ -176,43 +176,44 @@ class Database:
         with connection.cursor() as cursor:
             #query = f"SELECT * FROM crew WHERE tconst = '{title_id}'" 
 
-            query = f"""SELECT
-                            c.tconst,
+            query = f"""
+                    SELECT
+                        c.tconst,
 
-                            (
-                                SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT(
-                                        'nconst', p.nconst,
-                                        'primaryName', p.primaryName
-                                    )
+                        (
+                            SELECT JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'nconst', p.nconst,
+                                    'primaryName', p.primaryName
                                 )
-                                FROM people p
-                                WHERE FIND_IN_SET(p.nconst, c.directors)
-                            ) AS directors,
+                            )
+                            FROM crew_directors cd
+                            JOIN people p ON p.nconst = cd.nconst
+                            WHERE cd.tconst = c.tconst
+                        ) AS directors,
 
-                            (
-                                SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT(
-                                        'nconst', p.nconst,
-                                        'primaryName', p.primaryName
-                                    )
+                        (
+                            SELECT JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'nconst', p.nconst,
+                                    'primaryName', p.primaryName
                                 )
-                                FROM people p
-                                WHERE FIND_IN_SET(p.nconst, c.writers)
-                            ) AS writers
+                            )
+                            FROM crew_writers cw
+                            JOIN people p ON p.nconst = cw.nconst
+                            WHERE cw.tconst = c.tconst
+                        ) AS writers
 
-                        FROM crew c LEFT JOIN titles t ON c.tconst = t.tconst
-                        WHERE t.tconst = '{title_id}';
-                        """
+                    FROM crew c
+                    WHERE c.tconst = '{title_id}';
+                    """
             
             cursor.execute(query)
             crew = cursor.fetchone()
-            
-            crew['directors'] = json.loads(crew['directors']) if crew['directors'] else []
-            crew['writers'] = json.loads(crew['writers']) if crew['writers'] else []
 
-            print(crew['directors'], crew['writers'])
-        
+        crew['directors'] = json.loads(crew['directors']) if crew['directors'] else []
+        crew['writers'] = json.loads(crew['writers']) if crew['writers'] else []
+
         return crew
     
     def add_title(self, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres ):

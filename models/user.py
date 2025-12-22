@@ -3,6 +3,7 @@ from flask_login import UserMixin
 
 
 class DictUser(UserMixin):
+    # This class is not ORM, this is a wrapper for flask_login to work
     def __init__(self, user_dict):
         self.username = user_dict['username']
         self.password = user_dict['password']
