@@ -31,20 +31,14 @@
 
             <div class="form-group">
                 <label for="profession">Primary Profession</label>
-                <input type="text" id="profession" name="profession" value="{{ person.primaryProfession if person.primaryProfession else '' }}">
+                <input type="text" id="profession" name="profession" value="{{ person.professions if person.professions else '' }}">
                 <small>Separate multiple professions with commas</small>
-            </div>
-
-            <div class="form-group">
-                <label for="known_for">Known For Titles</label>
-                <input type="text" id="known_for" name="known_for" value="{{ person.knownForTitles if person.knownForTitles else '' }}">
-                <small>Enter title IDs separated by commas (optional)</small>
             </div>
 
             <div class="form-group">
                 <label for="most_known_title">Most Known Title (ID)</label>
                 <input type="text" id="most_known_title" name="most_known_title" value="{{ person.most_known_title if person.most_known_title else '' }}">
-                <small>Tek bir başlık ID'si girin (zorunlu değil)</small>
+                <small>Enter a single title ID (optional)</small>
             </div>
 
             <div class="form-actions">

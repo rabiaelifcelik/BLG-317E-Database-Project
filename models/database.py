@@ -369,16 +369,18 @@ class Database:
                     p.nconst,
                     pe.primaryName as person_name,
                     pe.birthYear as person_birth_year,
-                    pe.primaryProfession as person_profession,
+                    GROUP_CONCAT(DISTINCT prof.profession_name SEPARATOR ', ') as person_profession,
                     p.category,
                     p.job,
-                    GROUP_CONCAT(pc.character_name SEPARATOR ', ') as characters
+                    GROUP_CONCAT(DISTINCT pc.character_name SEPARATOR ', ') as characters
                 FROM principals p
                 LEFT JOIN titles t ON p.tconst = t.tconst
                 LEFT JOIN people pe ON p.nconst = pe.nconst
+                LEFT JOIN people_professions pp ON pe.nconst = pp.nconst
+                LEFT JOIN professions prof ON pp.profession_id = prof.profession_id
                 LEFT JOIN principal_characters pc ON p.principal_id = pc.principal_id
                 WHERE p.principal_id = %s
-                GROUP BY p.principal_id, p.tconst, t.primaryTitle, t.startYear, p.ordering, p.nconst, pe.primaryName, pe.birthYear, pe.primaryProfession, p.category, p.job
+                GROUP BY p.principal_id, p.tconst, t.primaryTitle, t.startYear, p.ordering, p.nconst, pe.primaryName, pe.birthYear, p.category, p.job
             """
             cursor.execute(query, (principal_id,))
             principal = cursor.fetchone()
@@ -557,19 +559,22 @@ class Database:
                 query = """
                     SELECT 
                         p.nconst, p.primaryName, 
-                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.birthYear, 0) as birthYear,
                         COALESCE(p.deathYear, 0) as deathYear, 
-                        p.primaryProfession, p.knownForTitles, p.most_known_title,
-                        t.primaryTitle as most_known_title_name
+                        p.most_known_title,
+                        t.primaryTitle as most_known_title_name,
+                        GROUP_CONCAT(DISTINCT prof.profession_name SEPARATOR ', ') as professions
                     FROM (
                         SELECT * FROM people 
                         WHERE primaryName LIKE %s 
-                        ORDER BY nconst ASC -- İndeks üzerinden hızlı sıralama
+                        ORDER BY nconst ASC
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
+                    LEFT JOIN people_professions pp ON p.nconst = pp.nconst
+                    LEFT JOIN professions prof ON pp.profession_id = prof.profession_id
+                    GROUP BY p.nconst, p.primaryName, p.birthYear, p.deathYear, p.most_known_title, t.primaryTitle
                 """
-                # Aramayı hızlandırmak için ismin başıyla eşleşenleri arıyoruz
                 search_param = f"{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
@@ -577,16 +582,20 @@ class Database:
                 query = """
                     SELECT 
                         p.nconst, p.primaryName, 
-                        COALESCE(p.birthYear, 0) as birthYear, -- Boşsa 0 yaparak TypeError'u önler
+                        COALESCE(p.birthYear, 0) as birthYear,
                         COALESCE(p.deathYear, 0) as deathYear,
-                        p.primaryProfession, p.knownForTitles, p.most_known_title,
-                        t.primaryTitle as most_known_title_name
+                        p.most_known_title,
+                        t.primaryTitle as most_known_title_name,
+                        GROUP_CONCAT(DISTINCT prof.profession_name SEPARATOR ', ') as professions
                     FROM (
                         SELECT * FROM people 
-                        ORDER BY nconst ASC -- İndeks üzerinden anlık sıralama
+                        ORDER BY nconst ASC
                         LIMIT 200
                     ) AS p
                     LEFT JOIN titles t ON p.most_known_title = t.tconst
+                    LEFT JOIN people_professions pp ON p.nconst = pp.nconst
+                    LEFT JOIN professions prof ON pp.profession_id = prof.profession_id
+                    GROUP BY p.nconst, p.primaryName, p.birthYear, p.deathYear, p.most_known_title, t.primaryTitle
                 """
                 cursor.execute(query)
             
@@ -607,10 +616,13 @@ class Database:
                 SELECT 
                     p.*,
                     t.primaryTitle as most_known_title_name,
-                    COUNT(pr.principal_id) as total_credits
+                    COUNT(DISTINCT pr.principal_id) as total_credits,
+                    GROUP_CONCAT(DISTINCT prof.profession_name SEPARATOR ', ') as professions
                 FROM people p
                 LEFT JOIN titles t ON p.most_known_title = t.tconst
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
+                LEFT JOIN people_professions pp ON p.nconst = pp.nconst
+                LEFT JOIN professions prof ON pp.profession_id = prof.profession_id
                 WHERE p.nconst = %s
                 GROUP BY p.nconst, t.primaryTitle
             """
@@ -644,47 +656,100 @@ class Database:
         
         return person
     
-    def add_person(self, name, birth_year, death_year, profession, known_for):
+    def add_person(self, name, birth_year, death_year, professions_list, most_known_title):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
-            # Handle connection failure if ping fails
             print("Failed to reconnect to the database.")
 
         """Add a new person to database"""
         with connection.cursor() as cursor:
-            # Generate nconst - COALESCE ensures 0 if table is empty (null-safe)
+            # Generate nconst
             cursor.execute("SELECT COALESCE(MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)), 0) as max_num FROM people WHERE nconst LIKE 'nm%'")
             result = cursor.fetchone()
             max_val = result['max_num'] if isinstance(result, dict) else result[0]
             new_id = f"nm{int(max_val) + 1:07d}"
             
+            # Insert person
             query = """
-                INSERT INTO people (nconst, primaryName, birthYear, deathYear, primaryProfession, knownForTitles)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO people (nconst, primaryName, birthYear, deathYear, most_known_title)
+                VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(query, (new_id, name, birth_year, death_year, profession, known_for))
+            cursor.execute(query, (new_id, name, birth_year, death_year, most_known_title))
+            
+            # Add professions if provided
+            if professions_list:
+                for profession in professions_list:
+                    profession = profession.strip()
+                    if profession:
+                        # Insert profession if not exists
+                        cursor.execute(
+                            "INSERT IGNORE INTO professions (profession_name) VALUES (%s)",
+                            (profession,)
+                        )
+                        # Get profession_id
+                        cursor.execute(
+                            "SELECT profession_id FROM professions WHERE profession_name = %s",
+                            (profession,)
+                        )
+                        prof_result = cursor.fetchone()
+                        if prof_result:
+                            prof_id = prof_result['profession_id'] if isinstance(prof_result, dict) else prof_result[0]
+                            # Link person to profession
+                            cursor.execute(
+                                "INSERT IGNORE INTO people_professions (nconst, profession_id) VALUES (%s, %s)",
+                                (new_id, prof_id)
+                            )
+            
             connection.commit()
         
         return new_id
     
-    def update_person(self, person_id, name, birth_year, death_year, profession, known_for):
+    def update_person(self, person_id, name, birth_year, death_year, professions_list, most_known_title):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
+            # Update person basic info
             query = """
                 UPDATE people 
                 SET primaryName = %s, 
                     birthYear = %s, 
                     deathYear = %s, 
-                    primaryProfession = %s, 
-                    knownForTitles = %s
+                    most_known_title = %s
                 WHERE nconst = %s
             """
-            cursor.execute(query, (name, birth_year, death_year, profession, known_for, person_id))
+            cursor.execute(query, (name, birth_year, death_year, most_known_title, person_id))
+            
+            # Delete existing professions
+            cursor.execute("DELETE FROM people_professions WHERE nconst = %s", (person_id,))
+            
+            # Add new professions
+            if professions_list:
+                for profession in professions_list:
+                    profession = profession.strip()
+                    if profession:
+                        # Insert profession if not exists
+                        cursor.execute(
+                            "INSERT IGNORE INTO professions (profession_name) VALUES (%s)",
+                            (profession,)
+                        )
+                        # Get profession_id
+                        cursor.execute(
+                            "SELECT profession_id FROM professions WHERE profession_name = %s",
+                            (profession,)
+                        )
+                        prof_result = cursor.fetchone()
+                        if prof_result:
+                            prof_id = prof_result['profession_id'] if isinstance(prof_result, dict) else prof_result[0]
+                            # Link person to profession
+                            cursor.execute(
+                                "INSERT IGNORE INTO people_professions (nconst, profession_id) VALUES (%s, %s)",
+                                (person_id, prof_id)
+                            )
+            
             connection.commit()
         
         return True
@@ -724,17 +789,19 @@ class Database:
             query = """
                 SELECT 
                     p.primaryName,
-                    p.primaryProfession,
+                    GROUP_CONCAT(DISTINCT prof.profession_name SEPARATOR ', ') as professions,
                     COUNT(DISTINCT pr.tconst) as total_productions,
                     ROUND(AVG(r.average_rating), 2) as career_avg_rating,
                     COUNT(DISTINCT a.region) as worldwide_reach
                 FROM people p
+                LEFT JOIN people_professions pp ON p.nconst = pp.nconst
+                LEFT JOIN professions prof ON pp.profession_id = prof.profession_id
                 LEFT JOIN principals pr ON p.nconst = pr.nconst
                 LEFT JOIN titles t ON pr.tconst = t.tconst
                 LEFT JOIN ratings r ON t.tconst = r.title_id
                 LEFT JOIN akas a ON t.tconst = a.titleId
                 WHERE p.birthYear IS NOT NULL
-                GROUP BY p.nconst, p.primaryName, p.primaryProfession
+                GROUP BY p.nconst, p.primaryName
                 HAVING total_productions > 0
                 ORDER BY worldwide_reach DESC, career_avg_rating DESC
                 LIMIT 200

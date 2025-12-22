@@ -33,7 +33,7 @@
                 <tr>
                     <td class="rank-cell">{{ loop.index }}</td>
                     <td class="name-cell">{{ stat.primaryName }}</td>
-                    <td class="profession-cell">{{ stat.primaryProfession or 'N/A' }}</td>
+                    <td class="profession-cell">{{ stat.professions or 'N/A' }}</td>
                     <td class="number-cell">{{ stat.total_productions }}</td>
                     <td class="rating-cell">
                         {% if stat.career_avg_rating %}

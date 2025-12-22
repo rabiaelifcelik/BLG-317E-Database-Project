@@ -281,10 +281,13 @@ def person_add_page():
         form_birth = request.form.get("birth_year", None)
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
-        form_known_for = request.form.get("known_for", "")
         form_most_known_title = request.form.get("most_known_title", None)
+        
+        # Convert profession string to list
+        professions_list = [p.strip() for p in form_profession.split(',')] if form_profession else []
+        
         db = current_app.config["db"]
-        new_id = db.add_person(form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
+        new_id = db.add_person(form_name, form_birth, form_death, professions_list, form_most_known_title)
         return redirect(url_for('person_page', person_id=new_id))
 
 @login_required
@@ -304,9 +307,12 @@ def person_edit_page(person_id):
         form_birth = request.form.get("birth_year", None)
         form_death = request.form.get("death_year", None)
         form_profession = request.form.get("profession", "")
-        form_known_for = request.form.get("known_for", "")
         form_most_known_title = request.form.get("most_known_title", None)
-        db.update_person(person_id, form_name, form_birth, form_death, form_profession, form_known_for, form_most_known_title)
+        
+        # Convert profession string to list
+        professions_list = [p.strip() for p in form_profession.split(',')] if form_profession else []
+        
+        db.update_person(person_id, form_name, form_birth, form_death, professions_list, form_most_known_title)
         return redirect(url_for('person_page', person_id=person_id))
 
 

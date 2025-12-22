@@ -68,8 +68,8 @@
                     <div class="info-item">
                         <span class="info-label">Primary Profession:</span>
                         <span class="info-value profession-badges">
-                            {% if person.primaryProfession %}
-                                {% for profession in person.primaryProfession.split(',') %}
+                            {% if person.professions %}
+                                {% for profession in person.professions.split(',') %}
                                     <span class="profession-badge">{{ profession.strip() }}</span>
                                 {% endfor %}
                             {% else %}
