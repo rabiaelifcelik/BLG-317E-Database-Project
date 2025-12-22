@@ -745,7 +745,6 @@ class Database:
 
 
 
-# --- Add this method to the Database class in models/database.py ---
     def get_akas_list(self, search_query=None):
         try:
             connection.ping(reconnect=True)
@@ -754,8 +753,6 @@ class Database:
 
         with connection.cursor() as cursor:
             if search_query:
-                # DURUM 1: Kullanıcı Arama Yaptıysa (Mecburen sıralayıp arayacağız)
-                # İpucu: Az önceki 'CREATE INDEX' kodunu çalıştırdıysan burası da hızlı olur.
                 query = (
                     "SELECT a.titleId, a.ordering, a.title, a.region, a.language, t.primaryTitle "
                     "FROM akas a "
@@ -766,9 +763,6 @@ class Database:
                 search_param = f"%{search_query}%"
                 cursor.execute(query, (search_param,))
             else:
-                # DURUM 2: Sayfa İlk Açılıyor (Arama Yok)
-                # HIZ HİLESİ: 'ORDER BY' yok! Sadece ilk bulduğun 200 taneyi al ve çık.
-                # Ayrıca önce 200 satırı 'akas'tan alıp SONRA 'titles' ile birleştiriyoruz.
                 query = (
                     "SELECT sub_a.titleId, sub_a.ordering, sub_a.title, sub_a.region, sub_a.language, t.primaryTitle "
                     "FROM (SELECT * FROM akas LIMIT 200) sub_a "
@@ -795,8 +789,6 @@ class Database:
     
     def add_aka(self, title_id, ordering, title, region, language, types, attributes, is_original_title):
         with connection.cursor() as cursor:
-            # NOT: titleId ve ordering primary key olduğu için, 
-            # aynı kaydı tekrar eklemeye çalışmak hata (1062) verir.
             query = """
                 INSERT INTO akas (titleId, ordering, title, region, language, types, attributes, is_original_title)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -839,7 +831,6 @@ class Database:
 
             
     def delete_aka(self, title_id, ordering):
-        # Senin delete_principal fonksiyonundaki mantığın aynısı:
         try:
             connection.ping(reconnect=True)
         except Exception:
@@ -889,7 +880,6 @@ class Database:
             pass
 
         with connection.cursor() as cursor:
-            # 1. Temel Sorgu (Henüz LIMIT veya WHERE yok)
             base_query = """
                 SELECT 
                     r.rating_id,
@@ -901,16 +891,11 @@ class Database:
                 LEFT JOIN titles t ON r.title_id = t.tconst
             """
             
-            # 2. Karar Anı: Filtre var mı?
             if min_rating is not None:
-                # DİKKAT: SQL'de sıra şöyledir: WHERE -> ORDER BY -> LIMIT
-                # O yüzden önce WHERE ekliyoruz, sonuna LIMIT yapıştırıyoruz.
                 full_query = base_query + " WHERE r.average_rating >= %s ORDER BY r.num_votes DESC LIMIT 200"
                 
-                # Tek elemanlı tuple kuralı: (min_rating, ) virgül şart!
                 cursor.execute(full_query, (min_rating,))
             else:
-                # Filtre yoksa direkt LIMIT ekle
                 full_query = base_query + " LIMIT 200"
                 cursor.execute(full_query)
             
@@ -977,7 +962,7 @@ class Database:
 
     def get_ratings_statistics(self):
         """
-        ULTIMATE 5-TABLE JOIN QUERY (Düzeltilmiş Versiyon)
+        ULTIMATE 5-TABLE JOIN QUERY
         """
         try:
             connection.ping(reconnect=True)

@@ -1,4 +1,3 @@
-/* ==================== RATINGS LIST PAGE (Titles Stili) ==================== */
 
 .ratings-container {
     max-width: 1400px;
@@ -163,7 +162,6 @@
 }
 
 
-/* ==================== RATINGS DETAILS PAGE (RESTORED People Stili) ==================== */
 
 .rating-detail-container {
     max-width: 1000px;
@@ -287,7 +285,6 @@
 }
 
 
-/* ==================== ADD FORM STYLES (Ortak Form Stili) ==================== */
 
 .form-container {
     background: rgba(255, 255, 255, 0.1);
