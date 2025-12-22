@@ -1,6 +1,6 @@
 from flask import render_template, current_app, abort, request, redirect, url_for, Flask
 from flask_login import LoginManager
-from user import get_user
+from models.user import get_user
 from config import connection
 import sys
 import views
@@ -26,9 +26,12 @@ if __name__ == '__main__':
     app.config["db"] = db
     
     # Add app url rules
+    app.add_url_rule("/", view_func=views.home_page)
+
+    # Authorization routes
     app.add_url_rule("/login", view_func=views.login_page, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=views.logout_page)
-    app.add_url_rule("/", view_func=views.home_page)
+    app.add_url_rule("/signup", view_func= views.signup_page, methods=["GET", "POST"])
 
     app.add_url_rule("/titles", view_func=views.titles_page)
     app.add_url_rule("/titles/<title_id>", view_func=views.title_page)

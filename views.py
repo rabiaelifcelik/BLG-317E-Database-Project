@@ -5,11 +5,33 @@ import sys
 
 sys.path.append("models")
 from models.database import Database
-from forms import LoginForm
-from user import User, get_user
+from forms import LoginForm, SignupForm
+from models.user import User, get_user
 
 def home_page():
     return render_template('home.html') 
+
+def signup_page():
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        # Check if the user exists
+        if get_user(username) is not None:
+            flash("Username already taken. Please choose another.", "warning")
+            return render_template("signup.html", form=form)
+
+        # Create new user
+        hashed_password = hasher.hash(password)
+        user = User(username=username, password=hashed_password)
+
+        # Login the new user
+        login_user(user)
+        flash("Account created successfully. You are now logged in.", "success")
+        return redirect(url_for("home_page"))
+
+    return render_template("signup.html", form=form)
 
 def login_page():
     form = LoginForm()
@@ -30,6 +52,28 @@ def logout_page():
     logout_user()
     flash("You have logged out.")
     return redirect(url_for("home_page"))
+
+def signup_page():
+    form = SignupForm()
+    if form.validate_on_submit():
+        username = form.data["username"]
+        password = form.data["password"]
+
+        # Kullanıcı zaten var mı kontrol et
+        if get_user(username) is not None:
+            flash("Username already taken. Please choose another.", "warning")
+            return render_template("signup.html", form=form)
+
+        # Yeni kullanıcı oluştur
+        hashed_password = hasher.hash(password)
+        user = User(username=username, password=hashed_password)
+
+        # Yeni kullanıcıyı login et
+        login_user(user)
+        flash("Account created successfully. You are now logged in.", "success")
+        return redirect(url_for("home_page"))
+
+    return render_template("signup.html", form=form)
 
 def titles_page(limit = 200):
     db = current_app.config["db"]

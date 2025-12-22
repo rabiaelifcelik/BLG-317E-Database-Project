@@ -6,8 +6,9 @@
 
 {% block content %}
     <div class="home-hero">
-        <h1>Welcome to Movie Surf</h1>
+        <h1>Welcome to Movie Surf {%if current_user.is_authenticated%}, {{current_user.username}} {% endif %}</h1>
         <p>Your comprehensive database for movies, TV shows, and entertainment</p>
+        {%if not current_user.is_authenticated%}<p>*Login for better experience</p>{%endif%}
         <p class="home-subtitle">"Cache Me If You Can" - BLG-317 Database Systems Project</p>
     </div>
 
