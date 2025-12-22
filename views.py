@@ -339,7 +339,7 @@ def akas_list_page():
     search_query = request.args.get("q")
 
     db = current_app.config["db"]
-    akas = db.get_akas_list(search_query=search_query) # Use the new list method
+    akas = db.get_akas_list(search_query=search_query) 
     
     return render_template(
         "akas_list.html",
@@ -347,11 +347,9 @@ def akas_list_page():
         search_query=search_query
     )
 
-# NEW VIEW FUNCTION: akas_details_page (For the details of a single alternate title)
 def akas_details_page(title_id, ordering):
     db = current_app.config["db"]
     
-    # Note: 'ordering' must be converted to an integer if it came from the URL as a string
     try:
         ordering = int(ordering)
     except ValueError:
@@ -389,12 +387,12 @@ def aka_add_page():
         attributes = request.form.get("attributes")
         is_original_title = request.form.get("is_original_title")
         
-        # Tip dönüşümü: ordering'i int yap
+        
         try:
             ordering = int(ordering)
             is_original_title = int(is_original_title)
         except ValueError:
-            # Hata mesajı gösterebilirsiniz
+            
             return "Hata: Ordering veya Is Original Title geçerli sayı değil.", 400
 
         try:
@@ -464,7 +462,6 @@ def delete_aka_page(title_id, ordering):
     # Silme fonksiyonunu çağır
     try:
         db.delete_aka(title_id, ordering)
-        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
         return redirect(url_for("akas_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
@@ -486,7 +483,7 @@ def ratings_list_page():
         min_val = None
 
     db = current_app.config["db"]
-    ratings = db.get_ratings_list(min_rating=min_val) # Use the new list method
+    ratings = db.get_ratings_list(min_rating=min_val) 
     
     return render_template(
         "ratings_list.html",
@@ -534,7 +531,6 @@ def rating_add_page():
             # Redirect to the list page on success
             return redirect(url_for("ratings_list_page"))
         except Exception as e:
-            # In a real app, you would flash an error message here
             return f"Error adding rating. Ensure Title ID {title_id} exists. Error: {str(e)}"
 
 @login_required     
@@ -573,7 +569,6 @@ def delete_rating_page(rating_id):
     # Silme fonksiyonunu çağır
     try:
         db.delete_rating(rating_id)
-        # İşlem bitince listeye geri dön (Listeyi gösteren fonksiyonunun adı akas_list_page imiş)
         return redirect(url_for("ratings_list_page"))
     except Exception as e:
         return f"Silinirken hata oluştu: {e}"
@@ -582,7 +577,7 @@ def ratings_stats_page():
     # Veritabanı bağlantısını al
     db = current_app.config["db"]
     
-    # O yazdığımız 5 tablolu fonksiyonu çağır
+    
     stats = db.get_ratings_statistics()
     
     # HTML sayfasına gönder

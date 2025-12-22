@@ -1,4 +1,3 @@
-/* ==================== AKAS PAGE STYLES (Hibrit: Titles List + Principal Detail) ==================== */
 
 .akas-container {
     max-width: 1400px;
@@ -6,7 +5,6 @@
     padding: 20px;
 }
 
-/* --- LIST PAGE HEADER (Titles Stili) --- */
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -35,7 +33,6 @@
     margin-top: 0;
 }
 
-/* --- DETAIL PAGE HEADER (Principal Stili - Ortalanmış) --- */
 .page-header {
     display: flex;
     flex-direction: column;
@@ -256,7 +253,6 @@
     color: white;
 }
 
-/* --- DETAIL CARD (Principal Stili Tablo) --- */
 .detail-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
