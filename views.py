@@ -1,4 +1,4 @@
-from flask import render_template, current_app, abort, request, redirect, url_for, flash
+from flask import render_template, current_app, abort, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user, login_required
 from passlib.hash import pbkdf2_sha256 as hasher
 import sys
@@ -6,38 +6,48 @@ import sys
 sys.path.append("models")
 from models.database import Database
 from forms import LoginForm, SignupForm
-from models.user import User, get_user
 
 def home_page():
     return render_template('home.html') 
 
 def signup_page():
     form = SignupForm()
+
+    session.pop('_flashes', None)
     if form.validate_on_submit():
+        db = current_app.config["db"]
         username = form.username.data
         password = form.password.data
 
         # Check if the user exists
-        if get_user(username) is not None:
+        if db.get_user(username) is not None:
             flash("Username already taken. Please choose another.", "warning")
             return render_template("signup.html", form=form)
 
         # Create new user
         hashed_password = hasher.hash(password)
-        user = User(username=username, password=hashed_password)
+        db = current_app.config["db"]
+        if db.create_user(username=username, hashed_password=hashed_password):
+            user = db.get_user(username)
 
-        # Login the new user
-        login_user(user)
-        flash("Account created successfully. You are now logged in.", "success")
-        return redirect(url_for("home_page"))
+            # Login the new user
+            login_user(user)
+            flash("Account created successfully. You are now logged in.", "success")
+            return redirect(url_for("login_page"))
+        
+        else:
+            flash("Encountered an error while signing up, please try later.")
 
     return render_template("signup.html", form=form)
 
 def login_page():
     form = LoginForm()
+    db = current_app.config["db"]
+
+    session.pop('_flashes', None)
     if form.validate_on_submit():
         username = form.data["username"]
-        user = get_user(username)
+        user = db.get_user(username)
         if user is not None:
             password = form.data["password"]
             if hasher.verify(password, user.password):
@@ -52,28 +62,6 @@ def logout_page():
     logout_user()
     flash("You have logged out.")
     return redirect(url_for("home_page"))
-
-def signup_page():
-    form = SignupForm()
-    if form.validate_on_submit():
-        username = form.data["username"]
-        password = form.data["password"]
-
-        # Kullanıcı zaten var mı kontrol et
-        if get_user(username) is not None:
-            flash("Username already taken. Please choose another.", "warning")
-            return render_template("signup.html", form=form)
-
-        # Yeni kullanıcı oluştur
-        hashed_password = hasher.hash(password)
-        user = User(username=username, password=hashed_password)
-
-        # Yeni kullanıcıyı login et
-        login_user(user)
-        flash("Account created successfully. You are now logged in.", "success")
-        return redirect(url_for("home_page"))
-
-    return render_template("signup.html", form=form)
 
 def titles_page(limit = 200):
     db = current_app.config["db"]

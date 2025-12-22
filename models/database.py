@@ -1,21 +1,46 @@
 from config import connection
 import json
 import pymysql
+from user import DictUser
+
 
 class Database:
     def __init__(self):
-        self.titles = {}
-        self._last_title_key = 0
+        pass
 
+    def create_user(self, username, hashed_password, is_admin=False):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
 
-    def add_title(self, title):
-        self._last_title_key += 1
-        self.titles[self._last_title_key] = title
-        return self._last_title_key
+        
+        with connection.cursor() as cursor:
+            sql = f"""
+                INSERT INTO users (username, password, is_admin)
+                VALUES ('{username}', '{hashed_password}', {1 if is_admin else 0});
+            """
+            cursor.execute(sql)
+            connection.commit() 
+        return True
     
-    def del_title(self, title_key):
-        if title_key in self.titles:
-            del self.titles[title_key]
+    def get_user(self, username, user_id = None):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            # Handle connection failure if ping fails
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            if user_id is not None:
+                cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            else:
+                cursor.execute("SELECT * FROM users WHERE username=%s", (username,))
+            row = cursor.fetchone()
+            if row:
+                return DictUser(row)
+            return None
 
     def get_title(self, title_key):
         try:
