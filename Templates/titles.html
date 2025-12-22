@@ -102,7 +102,11 @@
                                         <div class="info-row">
                                                 <span class="label">Genres:</span>
                                                 <span class="value profession-tag">
-                                                {{ title.genres if title.genres else 'N/A' }}
+                                                {% if title.genres %}
+                                                        {{ title.genres | join(', ') }}
+                                                {% else %}
+                                                        N/A
+                                                {% endif %}
                                                 </span>
                                         </div>
 

@@ -26,55 +26,46 @@ class Database:
             
         with connection.cursor() as cursor:
             # Fetch 10 movies for testing
-            query = f"""
-                SELECT  t.tconst,
-                CASE
-                    WHEN t.primaryTitle LIKE 'Episode %' AND pt.primaryTitle IS NOT NULL THEN
-                        CASE
-                            WHEN e.seasonNumber IS NOT NULL AND e.episodeNumber IS NOT NULL THEN
-                                CONCAT(
-                                    pt.primaryTitle,
-                                    ' (S',
-                                    LPAD(e.seasonNumber, 2, '0'),
-                                    'E',
-                                    LPAD(e.episodeNumber, 2, '0'),
-                                    ')'
-                                )
-                            ELSE
-                                pt.primaryTitle
-                        END
-                    ELSE
-                        t.primaryTitle
-                END AS primaryTitle,
+            query = f"""SELECT  
+                    t.tconst,
+                    t.primaryTitle AS primaryTitle,
+                    t.primaryTitle AS original_title,
+                    t.titleType,
+                    t.startYear,
+                    t.endYear,
+                    t.isAdult,
+                    t.runtimeMinutes,
+                    JSON_ARRAYAGG(g.genre_name) AS genres
 
-                t.primaryTitle AS original_title,
-                t.titleType,
-                t.startYear,
-                t.endYear,
-                t.isAdult,
-                t.runtimeMinutes,
-                t.genres
+                FROM titles t
+                LEFT JOIN title_genres tg ON t.tconst = tg.tconst
+                LEFT JOIN genres g ON tg.genre_id = g.genre_id
 
-            FROM titles t
-            LEFT JOIN episode e ON e.tconst = t.tconst
-            LEFT JOIN titles pt ON pt.tconst = e.parentTconst
+                WHERE t.tconst = "{title_key}"
 
-            WHERE t.tconst = "{title_key}";
+                GROUP BY 
+                    t.tconst,
+                    t.primaryTitle,
+                    t.titleType,
+                    t.startYear,
+                    t.endYear,
+                    t.isAdult,
+                    t.runtimeMinutes;
+
             """
 
             cursor.execute(query)
             title = cursor.fetchone()
+            if title["genres"]:
+                title["genres"] = json.loads(title["genres"])
+            else:
+                title["genres"] = []
             print(title)
 
         if title is not None or "":
             return title
         else:
             print("Not found in database.")
-
-        # if title_key in self.titles:
-        #     return self.titles[title_key]
-        # else:
-        #     print("title not found in database.")
 
     def get_titles(self, limit=200, search_title=None, sort = 'default', group = None):
         try:
@@ -91,50 +82,62 @@ class Database:
         }
         order_by = order_by_mapping.get(sort, 'tconst ASC')
 
-        
+        query = f"""SELECT
+                        t.tconst,
+                        t.primaryTitle,
+                        t.startYear,
+                        t.endYear,
+                        JSON_ARRAYAGG(g.genre_name) AS genres
+                    FROM titles t
+                    LEFT JOIN title_genres tg
+                        ON t.tconst = tg.tconst
+                    LEFT JOIN genres g
+                        ON tg.genre_id = g.genre_id
+                """
 
         with connection.cursor() as cursor:
             if search_title is None:
-                query = f"SELECT * FROM titles ORDER BY {order_by} LIMIT {limit};"
+                query += f"""GROUP BY
+                                t.tconst,
+                                t.primaryTitle,
+                                t.startYear,
+                                t.endYear 
+                            ORDER BY {order_by} LIMIT {limit};"""
 
             else:
-                query = f"""
-                    SELECT * FROM titles WHERE titles.primaryTitle LIKE '%{search_title}%' ORDER BY {order_by} LIMIT {limit};
-                """
+                query += f""" WHERE titles.primaryTitle LIKE '%{search_title}%' 
+                              GROUP BY
+                                t.tconst,
+                                t.primaryTitle,
+                                t.startYear,
+                                t.endYear  
+                              ORDER BY {order_by} LIMIT {limit};"""
+
 
             if group is not None:
                 query = f"SELECT COUNT({group}) as count, {group} as value from titles group by {group} LIMIT {limit};"
 
                 if group == "genres":
-                    query = f"""WITH RECURSIVE genre_split AS (
-                                    SELECT
-                                        tconst,
-                                        SUBSTRING_INDEX(genres, ',', 1) AS genre,
-                                        SUBSTRING(genres, LENGTH(SUBSTRING_INDEX(genres, ',', 1)) + 2) AS rest
-                                    FROM titles
-                                    WHERE genres IS NOT NULL
-
-                                    UNION ALL
-
-                                    SELECT
-                                        tconst,
-                                        SUBSTRING_INDEX(rest, ',', 1),
-                                        SUBSTRING(rest, LENGTH(SUBSTRING_INDEX(rest, ',', 1)) + 2)
-                                    FROM genre_split
-                                    WHERE rest <> ''
-                                )
-
+                    query = f"""
                                 SELECT
-                                    genre as value,
+                                    g.genre_name AS value,
                                     COUNT(*) AS count
-                                FROM genre_split
-                                GROUP BY value
+                                FROM title_genres tg
+                                JOIN genres g
+                                    ON tg.genre_id = g.genre_id
+                                GROUP BY g.genre_name
                                 ORDER BY count DESC
-                                LIMIT 10;
-                                """
+                                LIMIT {limit};
+                            """
                 
             cursor.execute(query)
             titles = cursor.fetchall()
+
+            for title in titles:
+                if title["genres"]:
+                    title["genres"] = json.loads(title["genres"])
+                else:
+                    title["genres"] = []
 
         return titles    
 

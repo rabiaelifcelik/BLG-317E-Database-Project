@@ -18,7 +18,11 @@
       </tr>
       <tr>
         <th>Genre:</th>
-        <td>{{ title.genres }}</td>
+        <td>{% if title.genres %}
+              {{ title.genres | join(', ') }}
+            {% else %}
+              N/A
+            {% endif %}</td>
       </tr>
       <tr>
         <th>Start Year:</th>
