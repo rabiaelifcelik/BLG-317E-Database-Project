@@ -1,12 +1,12 @@
 from flask import render_template, current_app, abort, request, redirect, url_for, Flask
 from flask_login import LoginManager
-from models.user import get_user
 from config import connection
 import sys
 import views
 
 sys.path.append("models")
 from models.database import Database
+from models.user import DictUser
 
 app = Flask(__name__)
 lm = LoginManager()
@@ -17,7 +17,11 @@ app.config["db"] = Database()
 
 @lm.user_loader
 def load_user(user_id):
-    return get_user(user_id)
+    db = app.config["db"]
+    user = db.get_user(user_id)
+    if user:
+        return user
+    return None
 
 
 if __name__ == '__main__':

@@ -6,9 +6,17 @@
     <div class="container has-text-centered">
       <div class="column is-4 is-offset-4">
         <h3 class="title has-text-grey">Sign Up</h3>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% set category, message = messages[-1] %}
+            <div class="notification is-{{ category }}">
+            {{ message }}
+            </div>
+        {% endif %}
+        {% endwith %}
 
         <div class="box">
-          <form action="" method="post" name="signup">
+          <form action="" method="POST" name="signup">
             {{ form.csrf_token }}
 
             <div class="field">
