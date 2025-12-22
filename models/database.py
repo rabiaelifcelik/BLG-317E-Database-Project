@@ -286,14 +286,16 @@ class Database:
                         pe.primaryName as person_name,
                         p.category,
                         p.job,
-                        p.characters
+                        GROUP_CONCAT(pc.character_name SEPARATOR ', ') as characters
                     FROM principals p
                     LEFT JOIN titles t ON p.tconst = t.tconst
                     LEFT JOIN people pe ON p.nconst = pe.nconst
+                    LEFT JOIN principal_characters pc ON p.principal_id = pc.principal_id
                     WHERE pe.primaryName LIKE %s 
                        OR t.primaryTitle LIKE %s
                        OR p.category LIKE %s
                        OR p.job LIKE %s
+                    GROUP BY p.principal_id, p.tconst, t.primaryTitle, p.ordering, p.nconst, pe.primaryName, p.category, p.job
                     ORDER BY p.principal_id DESC
                     LIMIT %s OFFSET %s
                 """
@@ -310,10 +312,12 @@ class Database:
                         pe.primaryName as person_name,
                         p.category,
                         p.job,
-                        p.characters
+                        GROUP_CONCAT(pc.character_name SEPARATOR ', ') as characters
                     FROM principals p
                     LEFT JOIN titles t ON p.tconst = t.tconst
                     LEFT JOIN people pe ON p.nconst = pe.nconst
+                    LEFT JOIN principal_characters pc ON p.principal_id = pc.principal_id
+                    GROUP BY p.principal_id, p.tconst, t.primaryTitle, p.ordering, p.nconst, pe.primaryName, p.category, p.job
                     ORDER BY p.principal_id DESC
                     LIMIT %s OFFSET %s
                 """
@@ -342,11 +346,13 @@ class Database:
                     pe.primaryProfession as person_profession,
                     p.category,
                     p.job,
-                    p.characters
+                    GROUP_CONCAT(pc.character_name SEPARATOR ', ') as characters
                 FROM principals p
                 LEFT JOIN titles t ON p.tconst = t.tconst
                 LEFT JOIN people pe ON p.nconst = pe.nconst
+                LEFT JOIN principal_characters pc ON p.principal_id = pc.principal_id
                 WHERE p.principal_id = %s
+                GROUP BY p.principal_id, p.tconst, t.primaryTitle, t.startYear, p.ordering, p.nconst, pe.primaryName, pe.birthYear, pe.primaryProfession, p.category, p.job
             """
             cursor.execute(query, (principal_id,))
             principal = cursor.fetchone()
@@ -365,11 +371,37 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
+            # Insert principal without characters
             query = """
-                INSERT INTO principals (tconst, ordering, nconst, category, job, characters) 
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO principals (tconst, ordering, nconst, category, job) 
+                VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(query, (title_id, ordering, name_id, category, job, characters))
+            cursor.execute(query, (title_id, ordering, name_id, category, job))
+            principal_id = cursor.lastrowid
+            
+            # Insert characters separately if provided
+            if characters:
+                import json
+                try:
+                    # Try to parse as JSON array
+                    char_list = json.loads(characters) if isinstance(characters, str) else characters
+                    if isinstance(char_list, list):
+                        for char_name in char_list:
+                            if char_name and char_name.strip():
+                                cursor.execute(
+                                    "INSERT INTO principal_characters (principal_id, character_name) VALUES (%s, %s)",
+                                    (principal_id, char_name.strip())
+                                )
+                except:
+                    # If not JSON, treat as single character or comma-separated
+                    char_names = characters.split(',') if ',' in characters else [characters]
+                    for char_name in char_names:
+                        if char_name and char_name.strip():
+                            cursor.execute(
+                                "INSERT INTO principal_characters (principal_id, character_name) VALUES (%s, %s)",
+                                (principal_id, char_name.strip())
+                            )
+            
             connection.commit()
         return True
     
@@ -380,12 +412,40 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
+            # Update principal without characters
             query = """
                 UPDATE principals 
-                SET tconst = %s, ordering = %s, nconst = %s, category = %s, job = %s, characters = %s
+                SET tconst = %s, ordering = %s, nconst = %s, category = %s, job = %s
                 WHERE principal_id = %s
             """
-            cursor.execute(query, (title_id, ordering, name_id, category, job, characters, principal_id))
+            cursor.execute(query, (title_id, ordering, name_id, category, job, principal_id))
+            
+            # Delete existing characters
+            cursor.execute("DELETE FROM principal_characters WHERE principal_id = %s", (principal_id,))
+            
+            # Insert new characters if provided
+            if characters:
+                import json
+                try:
+                    # Try to parse as JSON array
+                    char_list = json.loads(characters) if isinstance(characters, str) else characters
+                    if isinstance(char_list, list):
+                        for char_name in char_list:
+                            if char_name and char_name.strip():
+                                cursor.execute(
+                                    "INSERT INTO principal_characters (principal_id, character_name) VALUES (%s, %s)",
+                                    (principal_id, char_name.strip())
+                                )
+                except:
+                    # If not JSON, treat as single character or comma-separated
+                    char_names = characters.split(',') if ',' in characters else [characters]
+                    for char_name in char_names:
+                        if char_name and char_name.strip():
+                            cursor.execute(
+                                "INSERT INTO principal_characters (principal_id, character_name) VALUES (%s, %s)",
+                                (principal_id, char_name.strip())
+                            )
+            
             connection.commit()
         return True
     
@@ -396,10 +456,29 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
+            # CASCADE will automatically delete related characters
             query = "DELETE FROM principals WHERE principal_id = %s"
             cursor.execute(query, (principal_id,))
             connection.commit()
         return True
+    
+    def get_principal_characters(self, principal_id):
+        """Get all characters for a principal (3NF helper function)"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT character_id, character_name 
+                FROM principal_characters 
+                WHERE principal_id = %s
+                ORDER BY character_id
+            """
+            cursor.execute(query, (principal_id,))
+            characters = cursor.fetchall()
+        return characters
     
     def get_principals_statistics(self):
         """Complex query with nested query, 4+ table join, and GROUP BY for principals statistics"""
@@ -898,6 +977,227 @@ class Database:
                 GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
                 
                 ORDER BY r.average_rating DESC
+            """
+            cursor.execute(query)
+            stats = cursor.fetchall()
+        return stats
+    
+    # ========== EPISODE FUNCTIONS ==========
+    
+    def get_episodes(self, parent_tconst=None, search_query=None, limit=200):
+        """
+        Get episodes, optionally filtered by parent series or search query
+        
+        Args:
+            parent_tconst: Filter episodes by parent series ID
+            search_query: Search in episode or parent title names
+            limit: Maximum number of results
+        """
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            if parent_tconst:
+                # Get all episodes of a specific series
+                query = """
+                    SELECT 
+                        e.tconst,
+                        e.parentTconst,
+                        e.seasonNumber,
+                        e.episodeNumber,
+                        t.primaryTitle as episode_title,
+                        t.startYear as episode_year,
+                        pt.primaryTitle as parent_title
+                    FROM episodes e
+                    JOIN titles t ON e.tconst = t.tconst
+                    LEFT JOIN titles pt ON e.parentTconst = pt.tconst
+                    WHERE e.parentTconst = %s
+                    ORDER BY e.seasonNumber ASC, e.episodeNumber ASC
+                    LIMIT %s
+                """
+                cursor.execute(query, (parent_tconst, limit))
+            elif search_query:
+                # Search in episode or parent titles
+                query = """
+                    SELECT 
+                        e.tconst,
+                        e.parentTconst,
+                        e.seasonNumber,
+                        e.episodeNumber,
+                        t.primaryTitle as episode_title,
+                        t.startYear as episode_year,
+                        pt.primaryTitle as parent_title
+                    FROM episodes e
+                    JOIN titles t ON e.tconst = t.tconst
+                    LEFT JOIN titles pt ON e.parentTconst = pt.tconst
+                    WHERE t.primaryTitle LIKE %s 
+                       OR pt.primaryTitle LIKE %s
+                    ORDER BY e.seasonNumber ASC, e.episodeNumber ASC
+                    LIMIT %s
+                """
+                search_param = f"%{search_query}%"
+                cursor.execute(query, (search_param, search_param, limit))
+            else:
+                # Get all episodes
+                query = """
+                    SELECT 
+                        e.tconst,
+                        e.parentTconst,
+                        e.seasonNumber,
+                        e.episodeNumber,
+                        t.primaryTitle as episode_title,
+                        t.startYear as episode_year,
+                        pt.primaryTitle as parent_title
+                    FROM episodes e
+                    JOIN titles t ON e.tconst = t.tconst
+                    LEFT JOIN titles pt ON e.parentTconst = pt.tconst
+                    ORDER BY e.tconst DESC
+                    LIMIT %s
+                """
+                cursor.execute(query, (limit,))
+            
+            episodes = cursor.fetchall()
+        return episodes
+    
+    def get_episode(self, episode_tconst):
+        """Get a single episode with full details"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    e.tconst,
+                    e.parentTconst,
+                    e.seasonNumber,
+                    e.episodeNumber,
+                    t.primaryTitle as episode_title,
+                    t.titleType,
+                    t.startYear as episode_year,
+                    t.runtimeMinutes,
+                    t.genres,
+                    pt.primaryTitle as parent_title,
+                    pt.startYear as parent_year
+                FROM episodes e
+                JOIN titles t ON e.tconst = t.tconst
+                LEFT JOIN titles pt ON e.parentTconst = pt.tconst
+                WHERE e.tconst = %s
+            """
+            cursor.execute(query, (episode_tconst,))
+            episode = cursor.fetchone()
+        
+        if episode is not None:
+            return episode
+        else:
+            print("Episode not found in database.")
+            return None
+    
+    def add_episode(self, episode_tconst, parent_tconst, season_number, episode_number):
+        """
+        Add a new episode record
+        Note: The episode must already exist in titles table
+        """
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                INSERT INTO episodes (tconst, parentTconst, seasonNumber, episodeNumber) 
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(query, (episode_tconst, parent_tconst, season_number, episode_number))
+            connection.commit()
+        return True
+    
+    def update_episode(self, episode_tconst, parent_tconst, season_number, episode_number):
+        """Update an existing episode record"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE episodes 
+                SET parentTconst = %s, seasonNumber = %s, episodeNumber = %s
+                WHERE tconst = %s
+            """
+            cursor.execute(query, (parent_tconst, season_number, episode_number, episode_tconst))
+            connection.commit()
+        return True
+    
+    def delete_episode(self, episode_tconst):
+        """
+        Delete an episode record
+        Note: This only removes the episode relationship, not the title itself
+        """
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = "DELETE FROM episodes WHERE tconst = %s"
+            cursor.execute(query, (episode_tconst,))
+            connection.commit()
+        return True
+    
+    def get_series_seasons(self, parent_tconst):
+        """Get season statistics for a series"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    e.seasonNumber,
+                    COUNT(*) as episode_count,
+                    MIN(t.startYear) as first_aired,
+                    MAX(t.startYear) as last_aired,
+                    AVG(t.runtimeMinutes) as avg_runtime
+                FROM episodes e
+                JOIN titles t ON e.tconst = t.tconst
+                WHERE e.parentTconst = %s AND e.seasonNumber IS NOT NULL
+                GROUP BY e.seasonNumber
+                ORDER BY e.seasonNumber ASC
+            """
+            cursor.execute(query, (parent_tconst,))
+            seasons = cursor.fetchall()
+        return seasons
+    
+    def get_episode_statistics(self):
+        """Get comprehensive episode statistics with complex query"""
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("Failed to reconnect to the database.")
+
+        with connection.cursor() as cursor:
+            query = """
+                SELECT 
+                    pt.primaryTitle as series_name,
+                    COUNT(DISTINCT e.tconst) as total_episodes,
+                    COUNT(DISTINCT e.seasonNumber) as total_seasons,
+                    MIN(t.startYear) as first_aired,
+                    MAX(t.startYear) as last_aired,
+                    AVG(r.average_rating) as avg_rating,
+                    SUM(r.num_votes) as total_votes
+                FROM episodes e
+                JOIN titles t ON e.tconst = t.tconst
+                JOIN titles pt ON e.parentTconst = pt.tconst
+                LEFT JOIN ratings r ON t.tconst = r.title_id
+                GROUP BY e.parentTconst, pt.primaryTitle
+                HAVING total_episodes > 5
+                ORDER BY total_episodes DESC
+                LIMIT 100
             """
             cursor.execute(query)
             stats = cursor.fetchall()
