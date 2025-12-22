@@ -140,3 +140,5 @@ vite.config.ts.timestamp-*
 
 # pycache files
 __pycache__/
+
+imdb_data/

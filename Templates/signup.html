@@ -1,61 +1,245 @@
 {% extends "layout.html" %}
 {% block title %}Sign Up{% endblock %}
 {% block content %}
-<section class="hero">
-  <div class="hero-body">
-    <div class="container has-text-centered">
-      <div class="column is-4 is-offset-4">
-        <h3 class="title has-text-grey">Sign Up</h3>
+<style>
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.auth-box {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 50px 40px;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.auth-header h1 {
+    font-size: 36px;
+    color: #ffd700;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.auth-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+}
+
+.auth-icon {
+    font-size: 64px;
+    background: linear-gradient(45deg, #ffd700, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+}
+
+.notification {
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.notification.is-danger {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #ff9999;
+}
+
+.notification.is-success {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.4);
+    color: #99ff99;
+}
+
+.notification.is-warning {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    color: #ffeb99;
+}
+
+.auth-form .form-group {
+    margin-bottom: 25px;
+}
+
+.auth-form label {
+    display: block;
+    color: #ffd700;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    color: white;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.auth-form input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.error-message {
+    color: #ff9999;
+    font-size: 13px;
+    margin-top: 8px;
+    display: block;
+    background: rgba(220, 53, 69, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.auth-submit {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+}
+
+.auth-submit:active {
+    transform: translateY(0);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 30px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+}
+
+.auth-footer a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.auth-footer a:hover {
+    color: #ff6b9d;
+}
+
+@media (max-width: 768px) {
+    .auth-box {
+        padding: 40px 30px;
+    }
+    
+    .auth-header h1 {
+        font-size: 28px;
+    }
+}
+</style>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h1>Create Account</h1>
+            <p>Join us today!</p>
+        </div>
+
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% set category, message = messages[-1] %}
             <div class="notification is-{{ category }}">
-            {{ message }}
+                <i class="fas fa-info-circle"></i> {{ message }}
             </div>
         {% endif %}
         {% endwith %}
 
-        <div class="box">
-          <form action="" method="POST" name="signup">
+        <form action="" method="POST" name="signup" class="auth-form">
             {{ form.csrf_token }}
 
-            <div class="field">
-              <div class="control">
-                {{ form.username(class='input is-large', placeholder='Username', required=True) }}
-              </div>
-              {% for error in form.username.errors %}
-                <p class="help has-background-warning">{{ error }}</p>
-              {% endfor %}
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                {{ form.username(id='username', placeholder='Choose a username', required=True) }}
+                {% for error in form.username.errors %}
+                    <span class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    </span>
+                {% endfor %}
             </div>
 
-            <div class="field">
-              <div class="control">
-                {{ form.password(class='input is-large', placeholder='Password', required=True) }}
-              </div>
-              {% for error in form.password.errors %}
-                <p class="help has-background-warning">{{ error }}</p>
-              {% endfor %}
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                {{ form.password(id='password', placeholder='Create a password', required=True) }}
+                {% for error in form.password.errors %}
+                    <span class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    </span>
+                {% endfor %}
             </div>
 
-            <div class="field">
-              <div class="control">
-                {{ form.password_validate(class='input is-large', placeholder='Confirm Password', required=True) }}
-              </div>
-              {% for error in form.password_validate.errors %}
-                <p class="help has-background-warning">{{ error }}</p>
-              {% endfor %}
+            <div class="form-group">
+                <label for="password_validate">
+                    <i class="fas fa-lock"></i> Confirm Password
+                </label>
+                {{ form.password_validate(id='password_validate', placeholder='Re-enter your password', required=True) }}
+                {% for error in form.password_validate.errors %}
+                    <span class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> {{ error }}
+                    </span>
+                {% endfor %}
             </div>
 
-            <button class="button is-block is-info is-large is-fullwidth">Sign Up</button>
-          </form>
+            <button type="submit" class="auth-submit">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account?
+            <a href="{{ url_for('login_page') }}">
+                <i class="fas fa-sign-in-alt"></i> Sign in
+            </a>
         </div>
-
-        <p class="has-text-grey mt-3">
-          Already have an account? <a href="{{ url_for('login_page') }}">Login</a>
-        </p>
-
-      </div>
     </div>
-  </div>
-</section>
+</div>
 {% endblock %}

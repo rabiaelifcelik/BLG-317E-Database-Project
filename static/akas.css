@@ -152,14 +152,24 @@
 }
 
 .btn-view {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 10px 20px;
-    background: #007bff;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     font-size: 0.95em;
+}
+
+.btn-view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    color: white;
 }
 
 /* --- GRID & CARDS (List Page) --- */
@@ -171,46 +181,47 @@
 }
 
 .aka-card {
-    background: rgba(129, 137, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .aka-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.3);
 }
 
 .aka-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 15px;
     min-height: 60px;
 }
 
 .aka-header h3 {
     margin: 0;
-    color: #ddff44;
+    color: #ffd700;
     font-size: 1.3em;
-    font-weight: 400;
+    font-weight: 600;
 }
 
 .aka-id {
     font-size: 0.8em;
-    color: #aaa;
+    color: rgba(255, 255, 255, 0.6);
     font-family: monospace;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 .aka-info {
@@ -236,8 +247,8 @@
 }
 
 .label {
-    font-weight: 500;
-    color: #ddd;
+    font-weight: 600;
+    color: #ffd700;
     font-size: 0.92em;
 }
 
@@ -247,12 +258,13 @@
 
 /* --- DETAIL CARD (Principal Stili Tablo) --- */
 .detail-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 30px;
     margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .detail-card table {
@@ -289,13 +301,14 @@
 
 /* --- FORM CONTAINER (Edit/Add Pages) --- */
 .form-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 40px;
     max-width: 800px;
     margin: 30px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .form-group {

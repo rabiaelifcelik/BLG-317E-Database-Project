@@ -1,14 +1,15 @@
-/* ==================== titles PAGE STYLES ==================== */
+/* ==================== TITLES PAGE STYLES ==================== */
 
-/* titles List Page */
+/* Titles List Page */
 .titles-container {
-    padding: 20px;
     max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-.header-container{
+.header-container {
     display: flex;
-    flex:1;
+    flex: 1;
     flex-direction: column;
     align-items: stretch;
     justify-content: space-between;
@@ -23,16 +24,16 @@
 .title-and-info-container {
     display: flex;  
     justify-content: space-between; 
-    align-items:stretch;
+    align-items: stretch;
 }
 
 .title-and-info-container a {
-    margin-left:50px;
+    margin-left: 50px;
 }
 /* Search Section */
 .search-section {
-    display:flex;
-    flex:1;
+    display: flex;
+    flex: 1;
     align-items: flex-start;
     justify-content: space-between;
     margin: 20px 0;
@@ -49,10 +50,10 @@
 .search-input, .order-input {
     display: flex;
     flex: 4;
-    flex-grow:4;
+    flex-grow: 4;
     padding: 12px 20px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.1);
     color: white;
     font-size: 1em;
@@ -61,7 +62,7 @@
 
 .search-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #ffd700;
     background: rgba(255, 255, 255, 0.15);
 }
 
@@ -74,22 +75,22 @@
     min-width: 210px;
 }
 
-
 .btn-search {
     padding: 12px 30px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 1em;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-search:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
 
@@ -113,32 +114,35 @@
 }
 
 .titles-container .subtitle {
-    color: #ccc;
-    font-size: 1.1em;
+    color: white;
+    font-size: 16px;
+    opacity: 0.8;
     margin-bottom: 30px;
 }
 
 .titles-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 25px;
     margin-top: 20px;
 }
 
 .title-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 20px;
-    background: rgba(129, 137, 255, 0.3);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .title-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.3);
 }
 
 .title-header {
@@ -146,24 +150,27 @@
     justify-content: space-between;
     min-height: 80px;
     align-items: center;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    padding-bottom: 15px;
 }
 
 .title-header h3 {
     margin: 0;
-    color: #ddff44;
+    color: #ffd700;
     font-size: 1.3em;
     font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: 0.3px;
 }
 
 .title-id {
     font-size: 0.8em;
-    color: #aaa;
+    color: rgba(255, 255, 255, 0.6);
     font-family: monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 .title-info {
@@ -185,8 +192,8 @@
 }
 
 .info-row .label {
-    font-weight: 500;
-    color: #ddd;
+    font-weight: 600;
+    color: #ffd700;
     font-family: 'Helvetica Neue', Arial, sans-serif;
     font-size: 0.92em;
     letter-spacing: 0.2px;
@@ -197,13 +204,13 @@
 }
 
 .profession-tag {
-    background: rgba(231, 243, 255, 0.2);
-    padding: 3px 10px;
+    background: rgba(255, 215, 0, 0.2);
+    padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.85em;
-    color: #ddff44;
+    color: #ffd700;
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.3px;
 }
 
@@ -249,28 +256,42 @@
 
 .btn-submit {
     display: inline-block;
-    box-shadow: none;
-    border-width: 0 0 0 0;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    border: none;
     padding: 10px 20px;
-    background:  #ffd700;
+    background: linear-gradient(135deg, #ffd700, #ff6b9d);
     color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-.btn-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .btn-submit:hover {
-    background:  #eebe00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
 }
 
-.btn-view:hover {
-    background: #0056b3;
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
 }
 
 .back-nav {
@@ -291,19 +312,30 @@
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
 }
 
-
-.btn-back {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #6c757d;
+.btn-add:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
     color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    transition: background 0.3s;
 }
 
-.btn-back:hover {
-    background: #5a6268;
+.btn-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    color: white;
 }
 
 .btn-delete {
@@ -357,13 +389,13 @@
 
 /* Detail Card Styles */
 .detail-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 30px;
     margin-top: 20px;
-
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .detail-card table {
@@ -413,10 +445,12 @@
     gap: 30px;
     margin-bottom: 40px;
     padding: 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .title-avatar {
@@ -433,19 +467,20 @@
 .title-title h1 {
     margin: 0 0 10px 0;
     font-size: 2.3em;
-    color: white;
+    color: #ffd700;
     font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
-    font-weight: 300;
+    font-weight: 600;
     letter-spacing: 0.5px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .title-id-badge {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.2);
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.9em;
     font-family: monospace;
+    color: white;
 }
 
 .title-info-grid {
@@ -455,18 +490,20 @@
 }
 
 .info-card {
-    background: rgba(129, 137, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
+    border-radius: 15px;
     padding: 25px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .info-card h2 {
     margin-top: 0;
-    color: #ddff44;
-    border-bottom: 2px solid #667eea;
+    color: #ffd700;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
     padding-bottom: 10px;
+    font-weight: 600;
 }
 
 .info-list {
@@ -486,7 +523,7 @@
 
 .info-label {
     font-weight: 600;
-    color: #ddd;
+    color: #ffd700;
 }
 
 .info-value {
@@ -530,20 +567,21 @@ input, select {
 }
 
 .form-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 40px;
     max-width: 800px;
     margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .form-group {
     margin-bottom: 25px;
     display: flex;
-    flex:1;
-    align-items:flex-start;
+    flex: 1;
+    align-items: flex-start;
     justify-content: flex-start;
     flex-direction: column;
     width: 100%;
@@ -586,8 +624,7 @@ input, select {
 .form-group select:focus {
     outline: none;
     border-color: #ffd700;
-    /* background: rgba(255, 255, 255, 0.15); */
-    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); 
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2); 
 }
 
 .form-group select:focus {
@@ -627,9 +664,11 @@ input, select {
     margin-top: 40px;
     width: 100%;
     border-collapse: collapse;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border-radius: 15px;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .stats-table thead {
@@ -638,7 +677,6 @@ input, select {
 }
 
 .stats-table th {
-    
     padding: 18px 15px;
     text-align: left;
     font-weight: 600;
