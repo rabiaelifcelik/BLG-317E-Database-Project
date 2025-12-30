@@ -219,7 +219,7 @@ def load_episodes(cursor, filename, limit):
 def main():
     start = time.time()
     create_data_directory()
-    LIMIT = 10000 # Test için her tablodan 10 bin kayıt. Tamamı için None yap.
+    LIMIT = 200000 # Test için her tablodan 10 bin kayıt. Tamamı için None yap.
     
     try:
         cursor = connection.cursor(pymysql.cursors.DictCursor)

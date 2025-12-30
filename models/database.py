@@ -100,12 +100,12 @@ class Database:
             print("Failed to reconnect to the database.")
 
         order_by_mapping = {
-            'oldest': 'startYear ASC',
-            'newest': 'startYear DESC',
-            'content-name': 'primaryTitle ASC',
-            'default': 'tconst ASC'  # default
+            'oldest': 't.startYear ASC',
+            'newest': 't.startYear DESC',
+            'content-name': 't.primaryTitle ASC',
+            'default': 't.tconst ASC'  # default
         }
-        order_by = order_by_mapping.get(sort, 'tconst ASC')
+        order_by = order_by_mapping.get(sort, 't.tconst ASC')
 
         query = f"""SELECT
                         t.tconst,
@@ -158,11 +158,12 @@ class Database:
             cursor.execute(query)
             titles = cursor.fetchall()
 
-            for title in titles:
-                if title["genres"]:
-                    title["genres"] = json.loads(title["genres"])
-                else:
-                    title["genres"] = []
+            if group is None:
+                for title in titles:
+                    if title["genres"]:
+                        title["genres"] = json.loads(title["genres"])
+                    else:
+                        title["genres"] = []
 
         return titles    
 
