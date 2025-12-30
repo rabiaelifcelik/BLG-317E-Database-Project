@@ -130,7 +130,7 @@ class Database:
                             ORDER BY {order_by} LIMIT {limit};"""
 
             else:
-                query += f""" WHERE titles.primaryTitle LIKE '%{search_title}%' 
+                query += f""" WHERE t.primaryTitle LIKE '%{search_title}%' 
                               GROUP BY
                                 t.tconst,
                                 t.primaryTitle,
