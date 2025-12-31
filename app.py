@@ -39,16 +39,16 @@ if __name__ == '__main__':
 
     app.add_url_rule("/titles", view_func=views.titles_page)
     app.add_url_rule("/titles/<title_id>", view_func=views.title_page)
-    app.add_url_rule("/titles/add", view_func=views.title_add_page)
+    app.add_url_rule("/titles/add", view_func=views.title_add_page, methods=["GET", "POST"])
     app.add_url_rule("/titles/<title_id>/edit", view_func=views.title_edit_page, methods=["GET", "POST"])
-    app.add_url_rule("/titles/<title_id>/delete", view_func=views.title_delete_page, methods=["POST"])
+    app.add_url_rule("/titles/<title_id>/delete", view_func=views.title_delete_page, methods=["GET", "POST"])
     app.add_url_rule("/titles/stats", view_func=views.titles_statistics_page)
 
     app.add_url_rule("/principals", view_func=views.principals_page)
     app.add_url_rule("/principals/add", view_func=views.principal_add_page, methods=["GET", "POST"])
     app.add_url_rule("/principals/<principal_id>", view_func=views.principal_page)
     app.add_url_rule("/principals/<principal_id>/edit", view_func=views.principal_edit_page, methods=["GET", "POST"])
-    app.add_url_rule("/principals/<principal_id>/delete", view_func=views.principal_delete_page, methods=["POST"])
+    app.add_url_rule("/principals/<principal_id>/delete", view_func=views.principal_delete_page, methods=["GET", "POST"])
     app.add_url_rule("/principals/statistics", view_func=views.principals_statistics_page)
     
     # People pages (Your section)

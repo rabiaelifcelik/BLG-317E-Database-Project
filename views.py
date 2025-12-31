@@ -106,50 +106,106 @@ def title_page(title_id):
     
 def title_add_page():
     if not current_user.is_admin:
-            abort(401)
+        abort(401)
 
     if request.method == "GET":
         return render_template('title_add.html')
     else:
-        form_primary_title = request.form["primary_title"]
-        form_original_title = request.form["original_title"]
-        form_isAdult = request.form["isAdult"]
-        form_start_year = request.form["start_year"]
-        form_end_year = request.form.get("end_year", None)
-        form_runtime_minutes = request.form.get("runtime_minutes", None)
-        form_genres = request.form.get("genres", None)
+        # 1. Checkbox kontrolü (Boolean -> 1/0)
+        is_adult_raw = request.form.get("isAdult")
+        form_isAdult = 1 if is_adult_raw else 0
+        
+        # 2. Sayısal alanların güvenli dönüşümü (Boşsa None/NULL yap)
+        def to_int(val):
+            if val and str(val).strip():
+                try:
+                    return int(val)
+                except ValueError:
+                    return None
+            return None
+
+        # Formdan gelen verileri temizleyerek alıyoruz
+        form_title_type = request.form.get("title_type", "movie")
+        form_primary_title = request.form.get("primary_title")
+        form_original_title = request.form.get("original_title")
+        
+        # Sayısal alanlar için to_int fonksiyonunu kullanıyoruz
+        form_start_year = to_int(request.form.get("start_year"))
+        form_end_year = to_int(request.form.get("end_year"))
+        form_runtime_minutes = to_int(request.form.get("runtime_minutes"))
+        
+        # Tür listesi (3NF için getlist kullanımı)
+        form_genres = request.form.getlist("genres")
         
         db = current_app.config["db"]
-        db.add_title(form_primary_title, form_original_title, int(form_isAdult), form_start_year, form_end_year, form_runtime_minutes, form_genres)
+        
+        # Database metodunu güvenli verilerle çağırıyoruz
+        db.add_title(
+            form_title_type, 
+            form_primary_title, 
+            form_original_title, 
+            form_isAdult, 
+            form_start_year, 
+            form_end_year, 
+            form_runtime_minutes, 
+            form_genres
+        )
         
         return redirect(url_for('titles_page'))
 
 @login_required
 def title_edit_page(title_id):
-    # Abort the page if the user is not admin
+    # Yetkilendirme kontrolü
+    if not current_user.is_admin:
+        abort(401)
 
     db = current_app.config["db"]
     
     if request.method == "GET":
         title = db.get_title(title_id)
-        print(title)
-        if title == None:
+        if title is None:
             abort(404)
         return render_template("title_edit.html", title=title)
     else:
-        form_primary_title = request.form["primary_title"]
-        form_original_title = request.form["original_title"]
-        form_title_type = request.form["title_type"]
-        form_is_adult = request.form.get('is_adult') == '1'
-        print("Form result ", request.form.get('is_adult'))
-        form_start_year = request.form["start_year"]
-        form_end_year = request.form.get("end_year", "")
-        form_runtime_minutes = request.form.get("runtime_minutes", "0")
-        form_genres = request.form["genres"]
+        # 1. Yardımcı fonksiyon: Sayısal hataları (DataError 1366) önlemek için
+        def to_int(val):
+            if val is not None and str(val).strip() != "":
+                try:
+                    return int(val)
+                except ValueError:
+                    return None
+            return None
 
-        db.update_title(title_id, form_primary_title, form_original_title, form_title_type, form_is_adult, 
-                            form_start_year, form_end_year, form_runtime_minutes, form_genres)
+        # 2. Form verilerini güvenli şekilde alıyoruz
+        form_primary_title = request.form.get("primary_title")
+        form_original_title = request.form.get("original_title")
+        form_title_type = request.form.get("title_type")
         
+        # Checkbox kontrolü: Seçiliyse 1, değilse 0
+        form_is_adult = 1 if request.form.get('is_adult') else 0
+        
+        # Sayısal alanları to_int ile temizliyoruz (Boş string yerine None gönderir)
+        form_start_year = to_int(request.form.get("start_year"))
+        form_end_year = to_int(request.form.get("end_year"))
+        form_runtime_minutes = to_int(request.form.get("runtime_minutes"))
+        
+        # 3. 3NF UYUMLU TÜR LİSTESİ: Birden fazla seçimi desteklemek için getlist kullanılır
+        form_genres = request.form.getlist("genres")
+
+        # 4. Veritabanını güncelle
+        db.update_title(
+            title_id, 
+            form_primary_title, 
+            form_original_title, 
+            form_title_type, 
+            form_is_adult, 
+            form_start_year, 
+            form_end_year, 
+            form_runtime_minutes, 
+            form_genres
+        )
+        
+        # Başarılı güncelleme sonrası detay sayfasına yönlendir
         return redirect(url_for('title_page', title_id=title_id))
     
 def title_delete_page(title_id):

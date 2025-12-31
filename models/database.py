@@ -217,7 +217,7 @@ class Database:
 
         return crew
     
-    def add_title(self, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres ):
+    def add_title(self, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres_list ):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
@@ -225,16 +225,31 @@ class Database:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED)) FROM people WHERE nconst LIKE 't%'")
-            max_id = cursor.fetchone()
-            new_id = f"t{int(max_id['MAX(CAST(SUBSTRING(nconst, 3) AS UNSIGNED))']) + 1 if max_id else 1:07d}"
-            query = """
-                INSERT INTO people (tconst, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres)
+            # 1. Yeni tconst oluştur (tt0000001 formatında)
+            cursor.execute("SELECT MAX(CAST(SUBSTRING(tconst, 3) AS UNSIGNED)) as max_id FROM titles WHERE tconst LIKE 'tt%'")
+            result = cursor.fetchone()
+            next_id_num = (result['max_id'] + 1) if result['max_id'] else 1
+            new_id = f"tt{next_id_num:07d}"
+
+            # 2. Ana tabloya (titles) ekle
+            sql_title = """
+                INSERT INTO titles (tconst, titleType, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(query, (new_id, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres))
+            cursor.execute(sql_title, (new_id, title_type, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes))
+
+            # 3. Türleri ayırarak title_genres tablosuna ekle
+            if genres_list:
+                for g_name in genres_list:
+                    # Türün ID'sini al (yoksa oluştur)
+                    cursor.execute("INSERT IGNORE INTO genres (genre_name) VALUES (%s)", (g_name.strip(),))
+                    cursor.execute("SELECT genre_id FROM genres WHERE genre_name = %s", (g_name.strip(),))
+                    gid = cursor.fetchone()['genre_id']
+                    
+                    # İlişki tablosuna ekle
+                    cursor.execute("INSERT INTO title_genres (tconst, genre_id) VALUES (%s, %s)", (new_id, gid))
+            
             connection.commit()
-        
         return new_id
     
     def delete_title(self, title_id):
@@ -252,19 +267,32 @@ class Database:
             connection.commit()
         return True
     
-    def update_title(self, titleId, primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres):
+    def update_title(self, titleId, primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres_list):
         try:
             connection.ping(reconnect=True)
         except pymysql.OperationalError:
             print("Failed to reconnect to the database.")
 
         with connection.cursor() as cursor:
-            query = """
+            # 1. Temel film bilgilerini güncelle
+            sql_update = """
                 UPDATE titles 
-                SET  primaryTitle = %s, originalTitle = %s, titleType = %s, isAdult = %s, startYear = %s, endYear = %s, runtimeMinutes = %s, genres = %s
+                SET primaryTitle = %s, originalTitle = %s, titleType = %s, isAdult = %s, 
+                    startYear = %s, endYear = %s, runtimeMinutes = %s
                 WHERE tconst = %s
             """
-            cursor.execute(query, (primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, genres, titleId))
+            cursor.execute(sql_update, (primaryTitle, originalTitle, titleType, isAdult, startYear, endYear, runtimeMinutes, titleId))
+
+            # 2. Tür ilişkilerini temizle ve yeniden oluştur (3NF kuralı)
+            cursor.execute("DELETE FROM title_genres WHERE tconst = %s", (titleId,))
+            
+            if genres_list:
+                for g_name in genres_list:
+                    cursor.execute("INSERT IGNORE INTO genres (genre_name) VALUES (%s)", (g_name.strip(),))
+                    cursor.execute("SELECT genre_id FROM genres WHERE genre_name = %s", (g_name.strip(),))
+                    gid = cursor.fetchone()['genre_id']
+                    cursor.execute("INSERT INTO title_genres (tconst, genre_id) VALUES (%s, %s)", (titleId, gid))
+            
             connection.commit()
         return True
 
