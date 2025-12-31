@@ -595,16 +595,16 @@ def load_akas(cursor, filename, limit=None):
                 language = convert_value(parts[4])
                 types = convert_value(parts[5])
                 attributes = convert_value(parts[6])
-                isOriginalTitle = 1 if parts[7] == '1' else 0
+                is_original_title = 1 if parts[7] == '1' else 0
                 
                 batch.append((titleId, ordering, title, region, language, 
-                            types, attributes, isOriginalTitle))
+                            types, attributes, is_original_title))
                 
                 if len(batch) >= 1000:
                     cursor.executemany(
                         """INSERT IGNORE INTO akas 
                         (titleId, ordering, title, region, language, 
-                         types, attributes, isOriginalTitle) 
+                         types, attributes, is_original_title) 
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                         batch
                     )
@@ -617,7 +617,7 @@ def load_akas(cursor, filename, limit=None):
             cursor.executemany(
                 """INSERT IGNORE INTO akas 
                 (titleId, ordering, title, region, language, 
-                 types, attributes, isOriginalTitle) 
+                 types, attributes, is_original_title) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                 batch
             )
@@ -676,19 +676,20 @@ def load_episodes(cursor, filename, limit=None):
 def main():
     """Ana fonksiyon"""
     print("=" * 60)
-    print("IMDb Non-Commercial Datasets Yükleme")
+    print("IMDb Non-Commercial Datasets Yükleme (HİBRİT MOD)")
     print("=" * 60)
     
     # Veri dizinini oluştur
     create_data_directory()
     
-    # Test modu için limit (production'da None yapın)
-    # Tam dataset için: LIMIT = None
-    LIMIT = 10000  # Test için 10,000 kayıt
+    # --- AYARLAR ---
+    # People ve Principals tabloları çok şişkin olduğu için onları limitliyoruz.
+    # Diğerlerini (Titles, Ratings, Akas) FULL yüklüyoruz ki eşleşme sorunu olmasın.
+    HEAVY_TABLE_LIMIT = 50000  # İnsanlar ve Roller için 50.000 kayıt yeterli
     
     print(f"\n{'!' * 60}")
-    print(f"UYARI: Limit modu aktif - Her tablodan {LIMIT:,} kayıt yüklenecek")
-    print(f"Tüm veriyi yüklemek için LIMIT = None yapın")
+    print(f"AYAR: Titles, Ratings, Crew ve Akas -> FULL YÜKLENECEK (Limitsiz)")
+    print(f"AYAR: People ve Principals -> {HEAVY_TABLE_LIMIT:,} kayıt ile sınırlanacak")
     print(f"{'!' * 60}\n")
     
     try:
@@ -718,14 +719,15 @@ def main():
         connection.commit()
         print("✓ Tüm tablolar temizlendi\n")
         
-        # 1. Titles (En önemli - diğer tablolar buna bağlı)
-        print("\n1. TITLES")
+        # 1. Titles (FULL YÜKLE - Eşleşmenin temeli burası)
+        print("\n1. TITLES (FULL)")
         filename = download_dataset('title.basics', DATASETS['title.basics'])
         title_genres_data = []
         if filename:
-            title_genres_data = load_titles(cursor, filename, LIMIT)
+            # LIMIT YOK (None)
+            title_genres_data = load_titles(cursor, filename, limit=None)
         
-        # 1a. Genres (Titles'tan çıkarılan verilerle)
+        # 1a. Genres
         print("\n1a. GENRES")
         if title_genres_data:
             load_genres(cursor, title_genres_data)
@@ -735,53 +737,53 @@ def main():
         if title_genres_data:
             load_title_genres(cursor, title_genres_data)
         
-        # 2. Ratings
-        print("\n2. RATINGS")
+        # 2. Ratings (FULL YÜKLE - İstatistikler için şart)
+        print("\n2. RATINGS (FULL)")
         filename = download_dataset('title.ratings', DATASETS['title.ratings'])
         if filename:
-            load_ratings(cursor, filename, LIMIT)
+            load_ratings(cursor, filename, limit=None)
         
-        # 3. Crew
-        print("\n3. CREW")
+        # 3. Crew (FULL YÜKLE - Yönetmenler önemli)
+        print("\n3. CREW (FULL)")
         filename = download_dataset('title.crew', DATASETS['title.crew'])
         if filename:
-            load_crew(cursor, filename, LIMIT)
+            load_crew(cursor, filename, limit=None)
         
-        # 4. People (Principals için gerekli)
-        print("\n4. PEOPLE")
+        # 4. People (LİMİTLİ - Çok ağır tablo)
+        print(f"\n4. PEOPLE (LİMİTLİ: {HEAVY_TABLE_LIMIT})")
         filename = download_dataset('name.basics', DATASETS['name.basics'])
         professions_data = []
         people_professions_data = []
         if filename:
-            professions_data, people_professions_data = load_people(cursor, filename, LIMIT)
+            professions_data, people_professions_data = load_people(cursor, filename, limit=HEAVY_TABLE_LIMIT)
         
-        # 4a. Professions (People'dan çıkarılan verilerle)
+        # 4a. Professions
         print("\n4a. PROFESSIONS")
         if professions_data:
             load_professions(cursor, professions_data)
         
-        # 4b. People-Professions İlişkileri
+        # 4b. People-Professions
         print("\n4b. PEOPLE-PROFESSIONS")
         if people_professions_data:
             load_people_professions(cursor, people_professions_data)
         
-        # 5. Principals
-        print("\n5. PRINCIPALS")
+        # 5. Principals (LİMİTLİ - En ağır tablo)
+        print(f"\n5. PRINCIPALS (LİMİTLİ: {HEAVY_TABLE_LIMIT})")
         filename = download_dataset('title.principals', DATASETS['title.principals'])
         characters_data = []
         if filename:
-            characters_data = load_principals(cursor, filename, LIMIT)
+            characters_data = load_principals(cursor, filename, limit=HEAVY_TABLE_LIMIT)
         
         # 5a. Principal Characters
         print("\n5a. PRINCIPAL_CHARACTERS")
         if characters_data:
             load_principal_characters(cursor, characters_data)
 
-        # 6. Akas
-        print("\n6. AKAS")
+        # 6. Akas (FULL YÜKLE - Yerelleştirme için şart)
+        print("\n6. AKAS (FULL)")
         filename = download_dataset('title.akas', DATASETS['title.akas'])
         if filename:
-            load_akas(cursor, filename, LIMIT)
+            load_akas(cursor, filename, limit=None)
         
         print("\n" + "=" * 60)
         print("✓ Tüm veriler başarıyla yüklendi!")
@@ -792,6 +794,8 @@ def main():
         connection.rollback()
     finally:
         cursor.close()
+
+# Dosyanın en sonuna bunu yapıştır:
 
 if __name__ == "__main__":
     start_time = time.time()
