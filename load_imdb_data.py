@@ -188,21 +188,56 @@ def load_akas(cursor, filename, limit):
     with open(filename, 'r', encoding='utf-8') as f:
         next(f)
         batch = []
-        for i, line in enumerate(f):
-            if limit and i >= limit: break
-            p = line.strip().split('\t')
-            # titleId, ordering, title, region, language, types, attributes, isOriginalTitle
-            batch.append((p[0], p[1], convert_value(p[2]), convert_value(p[3]), convert_value(p[4]), 
-                          convert_value(p[5]), convert_value(p[6]), 1 if p[7]=='1' else 0))
-            if len(batch) >= 2000:
-                cursor.executemany("INSERT IGNORE INTO akas VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
-                batch = []
-        if batch: cursor.executemany("INSERT IGNORE INTO akas VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
-    connection.commit()
+        count = 0
+        
+        for line in f:
+            if limit and count >= limit:
+                break
+                
+            parts = line.strip().split('\t')
+            if len(parts) >= 8:
+                titleId = parts[0]  # tconst
+                ordering = convert_value(parts[1])
+                title = convert_value(parts[2])
+                region = convert_value(parts[3])
+                language = convert_value(parts[4])
+                types = convert_value(parts[5])
+                attributes = convert_value(parts[6])
+                is_original_title = 1 if parts[7] == '1' else 0
+                
+                batch.append((titleId, ordering, title, region, language, 
+                            types, attributes, is_original_title))
+                
+                if len(batch) >= 1000:
+                    cursor.executemany(
+                        """INSERT IGNORE INTO akas 
+                        (titleId, ordering, title, region, language, 
+                         types, attributes, is_original_title) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                        batch
+                    )
+                    connection.commit()
+                    count += len(batch)
+                    print(f"  {count} kayıt yüklendi...", end='\r')
+                    batch = []
+        
+        if batch:
+            cursor.executemany(
+                """INSERT IGNORE INTO akas 
+                (titleId, ordering, title, region, language, 
+                 types, attributes, is_original_title) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                batch
+            )
+            connection.commit()
+            count += len(batch)
+    
+    print(f"\n✓ {count} akas kaydı yüklendi")
 
-# 7. EPISODES
-def load_episodes(cursor, filename, limit):
-    print("→ Bölüm bilgileri (Episodes) yükleniyor...")
+def load_episodes(cursor, filename, limit=None):
+    """Episodes tablosunu yükle"""
+    print("\n→ Episodes tablosu yükleniyor...")
+    
     with open(filename, 'r', encoding='utf-8') as f:
         next(f)
         batch = []
@@ -217,21 +252,113 @@ def load_episodes(cursor, filename, limit):
     connection.commit()
 
 def main():
-    start = time.time()
+    """Ana fonksiyon"""
+    print("=" * 60)
+    print("IMDb Non-Commercial Datasets Yükleme (HİBRİT MOD)")
+    print("=" * 60)
+    
+    # Veri dizinini oluştur
     create_data_directory()
-    LIMIT = 200000 # Test için her tablodan 10 bin kayıt. Tamamı için None yap.
+    
+    # --- AYARLAR ---
+    # People ve Principals tabloları çok şişkin olduğu için onları limitliyoruz.
+    # Diğerlerini (Titles, Ratings, Akas) FULL yüklüyoruz ki eşleşme sorunu olmasın.
+    HEAVY_TABLE_LIMIT = 50000  # İnsanlar ve Roller için 50.000 kayıt yeterli
+    
+    print(f"\n{'!' * 60}")
+    print(f"AYAR: Titles, Ratings, Crew ve Akas -> FULL YÜKLENECEK (Limitsiz)")
+    print(f"AYAR: People ve Principals -> {HEAVY_TABLE_LIMIT:,} kayıt ile sınırlanacak")
+    print(f"{'!' * 60}\n")
     
     try:
         cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        tables_to_clear = [
+            'people_professions',
+            'professions',
+            'principal_characters',
+            'principals',
+            'crew',
+            'ratings',
+            'akas',
+            'episodes',
+            'title_genres',
+            'genres',
+            'people',
+            'titles'
+        ]
+        for table in tables_to_clear:
+            cursor.execute(f"TRUNCATE TABLE {table}")
+            print(f"  ✓ {table} temizlendi")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        connection.commit()
+        print("✓ Tüm tablolar temizlendi\n")
         
-        load_titles_and_genres(cursor, download_dataset('title.basics', DATASETS['title.basics']), LIMIT)
-        load_ratings(cursor, download_dataset('title.ratings', DATASETS['title.ratings']), LIMIT)
-        load_crew_3nf(cursor, download_dataset('title.crew', DATASETS['title.crew']), LIMIT)
-        load_people_3nf(cursor, download_dataset('name.basics', DATASETS['name.basics']), LIMIT)
-        load_principals_and_chars(cursor, download_dataset('title.principals', DATASETS['title.principals']), LIMIT)
-        load_akas(cursor, download_dataset('title.akas', DATASETS['title.akas']), LIMIT)
-        load_episodes(cursor, download_dataset('title.episode', DATASETS['title.episode']), LIMIT)
+        # 1. Titles (FULL YÜKLE - Eşleşmenin temeli burası)
+        print("\n1. TITLES (FULL)")
+        filename = download_dataset('title.basics', DATASETS['title.basics'])
+        title_genres_data = []
+        if filename:
+            # LIMIT YOK (None)
+            title_genres_data = load_titles(cursor, filename, limit=None)
+        
+        # 1a. Genres
+        print("\n1a. GENRES")
+        if title_genres_data:
+            load_genres(cursor, title_genres_data)
+        
+        # 1b. Title-Genres İlişkileri
+        print("\n1b. TITLE-GENRES")
+        if title_genres_data:
+            load_title_genres(cursor, title_genres_data)
+        
+        # 2. Ratings (FULL YÜKLE - İstatistikler için şart)
+        print("\n2. RATINGS (FULL)")
+        filename = download_dataset('title.ratings', DATASETS['title.ratings'])
+        if filename:
+            load_ratings(cursor, filename, limit=None)
+        
+        # 3. Crew (FULL YÜKLE - Yönetmenler önemli)
+        print("\n3. CREW (FULL)")
+        filename = download_dataset('title.crew', DATASETS['title.crew'])
+        if filename:
+            load_crew(cursor, filename, limit=None)
+        
+        # 4. People (LİMİTLİ - Çok ağır tablo)
+        print(f"\n4. PEOPLE (LİMİTLİ: {HEAVY_TABLE_LIMIT})")
+        filename = download_dataset('name.basics', DATASETS['name.basics'])
+        professions_data = []
+        people_professions_data = []
+        if filename:
+            professions_data, people_professions_data = load_people(cursor, filename, limit=HEAVY_TABLE_LIMIT)
+        
+        # 4a. Professions
+        print("\n4a. PROFESSIONS")
+        if professions_data:
+            load_professions(cursor, professions_data)
+        
+        # 4b. People-Professions
+        print("\n4b. PEOPLE-PROFESSIONS")
+        if people_professions_data:
+            load_people_professions(cursor, people_professions_data)
+        
+        # 5. Principals (LİMİTLİ - En ağır tablo)
+        print(f"\n5. PRINCIPALS (LİMİTLİ: {HEAVY_TABLE_LIMIT})")
+        filename = download_dataset('title.principals', DATASETS['title.principals'])
+        characters_data = []
+        if filename:
+            characters_data = load_principals(cursor, filename, limit=HEAVY_TABLE_LIMIT)
+        
+        # 5a. Principal Characters
+        print("\n5a. PRINCIPAL_CHARACTERS")
+        if characters_data:
+            load_principal_characters(cursor, characters_data)
+
+        # 6. Akas (FULL YÜKLE - Yerelleştirme için şart)
+        print("\n6. AKAS (FULL)")
+        filename = download_dataset('title.akas', DATASETS['title.akas'])
+        if filename:
+            load_akas(cursor, filename, limit=None)
         
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         print(f"\n✅ İşlem tamamlandı! Toplam süre: {time.time()-start:.2f} saniye.")
@@ -241,5 +368,9 @@ def main():
     finally:
         cursor.close()
 
+# Dosyanın en sonuna bunu yapıştır:
+
 if __name__ == "__main__":
     main()
+    elapsed = time.time() - start_time
+    print(f"\nToplam süre: {elapsed:.2f} saniye ({elapsed/60:.2f} dakika)")
