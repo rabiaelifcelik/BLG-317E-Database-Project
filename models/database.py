@@ -143,7 +143,7 @@ class Database:
 
 
             if group is not None:
-                query = f"SELECT COUNT(*) as count, {group} as value from titles group by {group} LIMIT {limit};"
+                query = f"SELECT COUNT(*) as count, {group} as value from titles group by {group} order by count DESC LIMIT {limit};"
 
                 if group == "genres":
                     query = f"""
