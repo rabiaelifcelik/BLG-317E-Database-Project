@@ -11,9 +11,9 @@
     </div>
 
     <select id="group-by" name="group-by" onchange="submitGroup(this)" class="order-input">
-        <option value="titleType" {% if current_sort == 'titleType' %}selected{% endif %}>Group by: titleType</option>
-        <option value="isAdult" {% if current_sort == 'isAdult' %}selected{% endif %}>Group by: child content</option>
-        <option value="genres" {% if current_sort == 'genres' %}selected{% endif %}>Group by: genres</option>
+        <option value="titleType" {% if group == 'titleType' %}selected{% endif %}>Group by: titleType</option>
+        <option value="isAdult" {% if group == 'isAdult' %}selected{% endif %}>Group by: child content</option>
+        <option value="genres" {% if group == 'genres' %}selected{% endif %}>Group by: genres</option>
     </select>
 
 

@@ -1,7 +1,10 @@
 from config import connection
 import json
 import pymysql
-from user import DictUser
+import sys
+
+sys.path.append("models")
+from models.user import DictUser
 
 
 class Database:
@@ -140,7 +143,7 @@ class Database:
 
 
             if group is not None:
-                query = f"SELECT COUNT({group}) as count, {group} as value from titles group by {group} LIMIT {limit};"
+                query = f"SELECT COUNT(*) as count, {group} as value from titles group by {group} LIMIT {limit};"
 
                 if group == "genres":
                     query = f"""
@@ -159,10 +162,11 @@ class Database:
             titles = cursor.fetchall()
 
             for title in titles:
-                if title["genres"]:
-                    title["genres"] = json.loads(title["genres"])
+                if group is None:
+                    title["genres"] = json.loads(title["genres"]) if title["genres"] else []
                 else:
-                    title["genres"] = []
+                    break
+
 
         return titles    
 
