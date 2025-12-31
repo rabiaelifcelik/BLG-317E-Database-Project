@@ -1,10 +1,3 @@
-"""
-IMDb Non-Commercial Datasets Yükleme Scripti
-https://developer.imdb.com/non-commercial-datasets/
-
-Bu script IMDb'nin TSV formatındaki datasetlerini indirir ve MySQL veritabanına yükler.
-"""
-
 import gzip
 import shutil
 import os
@@ -12,6 +5,7 @@ import urllib.request
 import pymysql
 from config import connection
 import time
+import json
 
 # IMDb dataset URL'leri
 DATASETS = {
@@ -27,558 +21,172 @@ DATASETS = {
 DATA_DIR = 'imdb_data'
 
 def create_data_directory():
-    """Veri dizinini oluştur"""
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
         print(f"✓ {DATA_DIR} dizini oluşturuldu")
 
-def download_dataset(name, url, limit_mb=None):
-    """Dataset'i indir"""
+def download_dataset(name, url):
     gz_filename = os.path.join(DATA_DIR, f"{name}.tsv.gz")
     tsv_filename = os.path.join(DATA_DIR, f"{name}.tsv")
-    
-    # Eğer TSV dosyası zaten varsa atla
     if os.path.exists(tsv_filename):
-        print(f"✓ {name} zaten mevcut, indirme atlanıyor")
         return tsv_filename
-    
-    # GZ dosyası varsa sadece çıkar
-    if os.path.exists(gz_filename):
-        print(f"✓ {name}.gz mevcut, çıkarılıyor...")
-    else:
-        print(f"→ {name} indiriliyor... (Bu işlem biraz zaman alabilir)")
-        try:
-            urllib.request.urlretrieve(url, gz_filename)
-            print(f"✓ {name} indirildi")
-        except Exception as e:
-            print(f"✗ Hata: {name} indirilemedi: {e}")
-            return None
-    
-    # GZ dosyasını çıkar
-    try:
-        with gzip.open(gz_filename, 'rb') as f_in:
-            with open(tsv_filename, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        print(f"✓ {name} çıkarıldı")
-        
-        # GZ dosyasını sil (disk alanı için)
-        os.remove(gz_filename)
-        
-        return tsv_filename
-    except Exception as e:
-        print(f"✗ Hata: {name} çıkarılamadı: {e}")
-        return None
+    print(f"→ {name} indiriliyor ve çıkarılıyor...")
+    urllib.request.urlretrieve(url, gz_filename)
+    with gzip.open(gz_filename, 'rb') as f_in:
+        with open(tsv_filename, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+    os.remove(gz_filename)
+    return tsv_filename
 
 def convert_value(value):
-    """\\N değerlerini NULL'a çevir"""
     if value == '\\N' or value == '' or value == 'NULL':
         return None
     return value
 
-def load_titles(cursor, filename, limit=None):
-    """Titles tablosunu yükle (genres olmadan)"""
-    print("\n→ Titles tablosu yükleniyor...")
-    
-    title_genres_data = []  # Genre verilerini sakla
+# 1. TITLES & GENRES
+def load_titles_and_genres(cursor, filename, limit):
+    print("\n→ Titles ve Genre verileri işleniyor...")
+    title_genres_data = []
+    unique_genres = set()
     
     with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
-        batch = []
+        next(f)
         count = 0
-        
+        batch = []
         for line in f:
-            if limit and count >= limit:
-                break
-                
+            if limit and count >= limit: break
             parts = line.strip().split('\t')
-            if len(parts) >= 9:
-                tconst = parts[0]
-                titleType = convert_value(parts[1])
-                primaryTitle = convert_value(parts[2])
-                originalTitle = convert_value(parts[3])
-                isAdult = 1 if parts[4] == '1' else 0
-                startYear = convert_value(parts[5])
-                endYear = convert_value(parts[6])
-                runtimeMinutes = convert_value(parts[7])
-                genres = convert_value(parts[8])
-                
-                # Titles tablosuna genres olmadan ekle
-                batch.append((tconst, titleType, primaryTitle, originalTitle, 
-                            isAdult, startYear, endYear, runtimeMinutes))
-                
-                # Genre verilerini sakla
-                if genres:
-                    for genre in genres.split(','):
-                        genre = genre.strip()
-                        if genre:
-                            title_genres_data.append((tconst, genre))
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO titles 
-                        (tconst, titleType, primaryTitle, originalTitle, isAdult, 
-                         startYear, endYear, runtimeMinutes) 
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        # Kalan kayıtları yükle
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO titles 
-                (tconst, titleType, primaryTitle, originalTitle, isAdult, 
-                 startYear, endYear, runtimeMinutes) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} titles kaydı yüklendi")
-    return title_genres_data
-
-def load_genres(cursor, genres_data):
-    """Genres tablosunu yükle"""
-    print("\n→ Genres tablosu yükleniyor...")
-    
-    # Unique genres al
-    unique_genres = list(set([genre for _, genre in genres_data]))
-    
-    batch = []
-    count = 0
-    
-    for genre in unique_genres:
-        batch.append((genre,))
-        
-        if len(batch) >= 1000:
-            cursor.executemany(
-                """INSERT IGNORE INTO genres (genre_name) 
-                VALUES (%s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-            print(f"  {count} kayıt yüklendi...", end='\r')
-            batch = []
-    
-    if batch:
-        cursor.executemany(
-            """INSERT IGNORE INTO genres (genre_name) 
-            VALUES (%s)""",
-            batch
-        )
-        connection.commit()
-        count += len(batch)
-    
-    print(f"\n✓ {count} genres kaydı yüklendi")
-
-def load_title_genres(cursor, title_genres_data):
-    """Title-Genres ilişki tablosunu yükle"""
-    print("\n→ Title_Genres ilişkileri yükleniyor...")
-    
-    # Genre name'leri ID'lere çevirmek için bir mapping oluştur
-    cursor.execute("SELECT genre_id, genre_name FROM genres")
-    all_genres = cursor.fetchall()
-    genre_map = {genre['genre_name']: genre['genre_id'] for genre in all_genres}
-    
-    batch = []
-    count = 0
-    
-    for tconst, genre_name in title_genres_data:
-        if genre_name in genre_map:
-            genre_id = genre_map[genre_name]
-            batch.append((tconst, genre_id))
+            tconst = parts[0]
+            batch.append((tconst, convert_value(parts[1]), convert_value(parts[2]), 
+                          convert_value(parts[3]), 1 if parts[4]=='1' else 0, 
+                          convert_value(parts[5]), convert_value(parts[6]), convert_value(parts[7])))
             
-            if len(batch) >= 1000:
-                cursor.executemany(
-                    """INSERT IGNORE INTO title_genres 
-                    (tconst, genre_id) 
-                    VALUES (%s, %s)""",
-                    batch
-                )
-                connection.commit()
-                count += len(batch)
-                print(f"  {count} kayıt yüklendi...", end='\r')
-                batch = []
-    
-    if batch:
-        cursor.executemany(
-            """INSERT IGNORE INTO title_genres 
-            (tconst, genre_id) 
-            VALUES (%s, %s)""",
-            batch
-        )
-        connection.commit()
-        count += len(batch)
-    
-    print(f"\n✓ {count} title_genres kaydı yüklendi")
-
-def load_ratings(cursor, filename, limit=None):
-    """Ratings tablosunu yükle"""
-    print("\n→ Ratings tablosu yükleniyor...")
-    
-    with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
-        batch = []
-        count = 0
-        
-        for line in f:
-            if limit and count >= limit:
-                break
-                
-            parts = line.strip().split('\t')
-            if len(parts) >= 3:
-                title_id = parts[0]
-                average_rating = convert_value(parts[1])
-                num_votes = convert_value(parts[2])
-                
-                batch.append((title_id, average_rating, num_votes))
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO ratings 
-                        (title_id, average_rating, num_votes) 
-                        VALUES (%s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO ratings 
-                (title_id, average_rating, num_votes) 
-                VALUES (%s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} ratings kaydı yüklendi")
-
-def load_crew(cursor, filename, limit=None):
-    """Crew tablosunu yükle"""
-    print("\n→ Crew tablosu yükleniyor...")
-    
-    with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
-        batch = []
-        count = 0
-        
-        for line in f:
-            if limit and count >= limit:
-                break
-                
-            parts = line.strip().split('\t')
-            if len(parts) >= 3:
-                tconst = parts[0]
-                directors = convert_value(parts[1])
-                writers = convert_value(parts[2])
-                
-                batch.append((tconst, directors, writers))
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO crew 
-                        (tconst, directors, writers) 
-                        VALUES (%s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO crew 
-                (tconst, directors, writers) 
-                VALUES (%s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} crew kaydı yüklendi")
-
-def load_principals(cursor, filename, limit=None):
-    """Principals tablosunu yükle (characters olmadan)"""
-    print("\n→ Principals tablosu yükleniyor...")
-    
-    characters_data = []  # Character verilerini sakla
-    
-    with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
-        batch = []
-        count = 0
-        principal_id_counter = 1  # Manuel ID sayacı
-        
-        for line in f:
-            if limit and count >= limit:
-                break
-                
-            parts = line.strip().split('\t')
-            if len(parts) >= 6:
-                tconst = parts[0]
-                ordering = convert_value(parts[1])
-                nconst = parts[2]
-                category = convert_value(parts[3])
-                job = convert_value(parts[4])
-                characters = convert_value(parts[5])
-                
-                # Principals tablosuna characters olmadan ekle
-                batch.append((tconst, ordering, nconst, category, job))
-                
-                # Character verilerini sakla (principal_id ile)
-                if characters:
-                    # Characters JSON formatında olabilir: ["Character 1","Character 2"]
-                    # Köşeli parantezleri ve tırnak işaretlerini temizle
-                    chars_clean = characters.strip('[]').replace('"', '')
-                    for char in chars_clean.split(','):
-                        char = char.strip()
-                        if char:
-                            characters_data.append((principal_id_counter, char))
-                
-                principal_id_counter += 1
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO principals 
-                        (tconst, ordering, nconst, category, job) 
-                        VALUES (%s, %s, %s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO principals 
-                (tconst, ordering, nconst, category, job) 
-                VALUES (%s, %s, %s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} principals kaydı yüklendi")
-    return characters_data
-
-def load_principal_characters(cursor, characters_data):
-    """Principal Characters tablosunu yükle"""
-    print("\n→ Principal_Characters tablosu yükleniyor...")
-    
-    # Önce principals tablosundan gerçek ID'leri al
-    cursor.execute("SELECT principal_id, tconst, ordering, nconst FROM principals ORDER BY principal_id")
-    principals = cursor.fetchall()
-    
-    # Manuel ID'leri gerçek ID'lerle eşleştir
-    # Bu basit bir yaklaşım - sırayla eşleştirir
-    batch = []
-    count = 0
-    
-    for manual_id, character_name in characters_data:
-        # Manuel ID, principals listesindeki index'e karşılık gelir
-        if manual_id <= len(principals):
-            real_principal_id = principals[manual_id - 1]['principal_id']
-            batch.append((real_principal_id, character_name))
+            genres = convert_value(parts[8])
+            if genres:
+                for g in genres.split(','):
+                    g = g.strip()
+                    unique_genres.add(g)
+                    title_genres_data.append((tconst, g))
             
-            if len(batch) >= 1000:
-                cursor.executemany(
-                    """INSERT IGNORE INTO principal_characters 
-                    (principal_id, character_name) 
-                    VALUES (%s, %s)""",
-                    batch
-                )
-                connection.commit()
-                count += len(batch)
-                print(f"  {count} kayıt yüklendi...", end='\r')
-                batch = []
-    
-    if batch:
-        cursor.executemany(
-            """INSERT IGNORE INTO principal_characters 
-            (principal_id, character_name) 
-            VALUES (%s, %s)""",
-            batch
-        )
-        connection.commit()
-        count += len(batch)
-    
-    print(f"\n✓ {count} principal_characters kaydı yüklendi")
-
-def load_people(cursor, filename, limit=None):
-    """People/Names tablosunu yükle"""
-    print("\n→ People tablosu yükleniyor...")
-    
-    with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
-        batch = []
-        professions_data = []  # Professions için veri
-        people_professions_data = []  # People-Professions ilişkisi için veri
-        count = 0
-        
-        for line in f:
-            if limit and count >= limit:
-                break
-                
-            parts = line.strip().split('\t')
-            if len(parts) >= 6:
-                nconst = parts[0]
-                primaryName = convert_value(parts[1])
-                birthYear = convert_value(parts[2])
-                deathYear = convert_value(parts[3])
-                primaryProfession = convert_value(parts[4])  # Virgülle ayrılmış liste
-                knownForTitles = convert_value(parts[5])  # Virgülle ayrılmış liste
-                
-                # İlk bilinen title'ı most_known_title olarak al
-                most_known_title = None
-                if knownForTitles:
-                    titles_list = knownForTitles.split(',')
-                    if titles_list:
-                        most_known_title = titles_list[0].strip()
-                
-                batch.append((nconst, primaryName, birthYear, deathYear, most_known_title))
-                
-                # Professions'ı kaydet (sonra işlenecek)
-                if primaryProfession:
-                    prof_list = primaryProfession.split(',')
-                    for prof in prof_list:
-                        prof = prof.strip()
-                        if prof:
-                            professions_data.append(prof)
-                            people_professions_data.append((nconst, prof))
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO people 
-                        (nconst, primaryName, birthYear, deathYear, most_known_title) 
-                        VALUES (%s, %s, %s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO people 
-                (nconst, primaryName, birthYear, deathYear, most_known_title) 
-                VALUES (%s, %s, %s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} people kaydı yüklendi")
-    print(f"  → Toplanan profession sayısı: {len(professions_data)}")
-    print(f"  → Toplanan people-profession ilişki sayısı: {len(people_professions_data)}")
-    return professions_data, people_professions_data
-
-def load_professions(cursor, professions_data):
-    """Professions tablosunu yükle"""
-    print("\n→ Professions tablosu yükleniyor...")
-    print(f"  Alınan veri sayısı: {len(professions_data)}")
-    
-    # Unique professions al
-    unique_professions = list(set(professions_data))
-    print(f"  Unique profession sayısı: {len(unique_professions)}")
-    print(f"  İlk 5 örnek: {unique_professions[:5]}")
-    
-    count = 0
-    successful_inserts = 0
-    
-    for profession in unique_professions:
-        try:
-            cursor.execute(
-                """INSERT IGNORE INTO professions (profession_name) 
-                VALUES (%s)""",
-                (profession,)
-            )
-            if cursor.rowcount > 0:
-                successful_inserts += 1
             count += 1
-        except Exception as e:
-            print(f"\n  ✗ Hata ({profession}): {e}")
+            if len(batch) >= 2000:
+                cursor.executemany("INSERT IGNORE INTO titles VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
+                batch = []
+        if batch: cursor.executemany("INSERT IGNORE INTO titles VALUES (%s,%s,%s,%s,%s,%s,%s,%s)", batch)
     
+    # Genres tablosunu doldur
+    cursor.executemany("INSERT IGNORE INTO genres (genre_name) VALUES (%s)", [(g,) for g in unique_genres])
     connection.commit()
     
-    print(f"\n✓ {count} professions kaydı işlendi, {successful_inserts} başarılı insert")
+    # Title_Genres mapping
+    cursor.execute("SELECT genre_id, genre_name FROM genres")
+    g_map = {r['genre_name']: r['genre_id'] for r in cursor.fetchall()}
+    tg_batch = [(tc, g_map[gn]) for tc, gn in title_genres_data if gn in g_map]
+    cursor.executemany("INSERT IGNORE INTO title_genres (tconst, genre_id) VALUES (%s, %s)", tg_batch)
+    connection.commit()
+    print(f"✓ Titles ve Genres yüklendi.")
 
-def load_people_professions(cursor, people_professions_data):
-    """People-Professions ilişki tablosunu yükle"""
-    print("\n→ People_Professions ilişkileri yükleniyor...")
-    print(f"  Alınan veri sayısı: {len(people_professions_data)}")
-    
-    # Debug: Tablodaki kayıt sayısını kontrol et
-    cursor.execute("SELECT COUNT(*) as count FROM professions")
-    count_result = cursor.fetchone()
-    print(f"  Professions tablosundaki toplam kayıt: {count_result['count']}")
-    
-    # Profession name'leri ID'lere çevirmek için bir mapping oluştur
-    cursor.execute("SELECT profession_id, profession_name FROM professions")
-    all_profs = cursor.fetchall()
-    print(f"  SELECT ile dönen kayıt sayısı: {len(all_profs)}")
-    if len(all_profs) > 0:
-        print(f"  İlk 5 profession: {all_profs[:5]}")
-    
-    # Dictionary'den doğru şekilde mapping oluştur
-    prof_map = {prof['profession_name']: prof['profession_id'] for prof in all_profs}
-    print(f"  Profession mapping sayısı: {len(prof_map)}")
-    
-    batch = []
-    count = 0
-    
-    for nconst, profession_name in people_professions_data:
-        if profession_name in prof_map:
-            profession_id = prof_map[profession_name]
-            batch.append((nconst, profession_id))
-            
-            if len(batch) >= 1000:
-                cursor.executemany(
-                    """INSERT IGNORE INTO people_professions 
-                    (nconst, profession_id) 
-                    VALUES (%s, %s)""",
-                    batch
-                )
-                connection.commit()
-                count += len(batch)
-                print(f"  {count} kayıt yüklendi...", end='\r')
-                batch = []
-    
-    if batch:
-        cursor.executemany(
-            """INSERT IGNORE INTO people_professions 
-            (nconst, profession_id) 
-            VALUES (%s, %s)""",
-            batch
-        )
-        connection.commit()
-        count += len(batch)
-    
-    print(f"\n✓ {count} people_professions kaydı yüklendi")
-
-def load_akas(cursor, filename, limit=None):
-    """Akas tablosunu yükle"""
-    print("\n→ Akas tablosu yükleniyor...")
-    
+# 2. RATINGS
+def load_ratings(cursor, filename, limit):
+    print("→ Ratings yükleniyor...")
     with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
+        next(f)
+        batch = []
+        for i, line in enumerate(f):
+            if limit and i >= limit: break
+            p = line.strip().split('\t')
+            batch.append((p[0], convert_value(p[1]), convert_value(p[2])))
+            if len(batch) >= 2000:
+                cursor.executemany("INSERT IGNORE INTO ratings (title_id, average_rating, num_votes) VALUES (%s,%s,%s)", batch)
+                batch = []
+        if batch: cursor.executemany("INSERT IGNORE INTO ratings (title_id, average_rating, num_votes) VALUES (%s,%s,%s)", batch)
+    connection.commit()
+
+# 3. CREW (3NF: Directors & Writers)
+def load_crew_3nf(cursor, filename, limit):
+    print("→ Crew (Yönetmenler ve Yazarlar) 3NF olarak işleniyor...")
+    with open(filename, 'r', encoding='utf-8') as f:
+        next(f)
+        for i, line in enumerate(f):
+            if limit and i >= limit: break
+            p = line.strip().split('\t')
+            tconst = p[0]
+            cursor.execute("INSERT IGNORE INTO crew (tconst) VALUES (%s)", (tconst,))
+            
+            if convert_value(p[1]): # directors
+                dirs = [(tconst, d.strip()) for d in p[1].split(',')]
+                cursor.executemany("INSERT IGNORE INTO crew_directors (tconst, nconst) VALUES (%s,%s)", dirs)
+            
+            if convert_value(p[2]): # writers
+                writs = [(tconst, w.strip()) for w in p[2].split(',')]
+                cursor.executemany("INSERT IGNORE INTO crew_writers (tconst, nconst) VALUES (%s,%s)", writs)
+            
+            if i % 1000 == 0: connection.commit()
+    connection.commit()
+
+# 4. PEOPLE & PROFESSIONS
+def load_people_3nf(cursor, filename, limit):
+    print("→ People ve Meslekler yükleniyor...")
+    unique_profs = set()
+    people_profs = []
+    with open(filename, 'r', encoding='utf-8') as f:
+        next(f)
+        batch = []
+        for i, line in enumerate(f):
+            if limit and i >= limit: break
+            p = line.strip().split('\t')
+            nconst = p[0]
+            most_known = p[5].split(',')[0] if convert_value(p[5]) else None
+            batch.append((nconst, convert_value(p[1]), convert_value(p[2]), convert_value(p[3]), most_known))
+            
+            if convert_value(p[4]):
+                for prof in p[4].split(','):
+                    prof = prof.strip()
+                    unique_profs.add(prof)
+                    people_profs.append((nconst, prof))
+            
+            if len(batch) >= 2000:
+                cursor.executemany("INSERT IGNORE INTO people VALUES (%s,%s,%s,%s,%s)", batch)
+                batch = []
+        if batch: cursor.executemany("INSERT IGNORE INTO people VALUES (%s,%s,%s,%s,%s)", batch)
+    
+    cursor.executemany("INSERT IGNORE INTO professions (profession_name) VALUES (%s)", [(pr,) for pr in unique_profs])
+    connection.commit()
+    
+    cursor.execute("SELECT profession_id, profession_name FROM professions")
+    p_map = {r['profession_name']: r['profession_id'] for r in cursor.fetchall()}
+    pp_batch = [(nc, p_map[pn]) for nc, pn in people_profs if pn in p_map]
+    cursor.executemany("INSERT IGNORE INTO people_professions (nconst, profession_id) VALUES (%s,%s)", pp_batch)
+    connection.commit()
+
+# 5. PRINCIPALS & CHARACTERS
+def load_principals_and_chars(cursor, filename, limit):
+    print("→ Principals ve Karakter isimleri yükleniyor...")
+    with open(filename, 'r', encoding='utf-8') as f:
+        next(f)
+        for i, line in enumerate(f):
+            if limit and i >= limit: break
+            p = line.strip().split('\t')
+            cursor.execute("INSERT INTO principals (tconst, ordering, nconst, category, job) VALUES (%s,%s,%s,%s,%s)",
+                           (p[0], p[1], p[2], convert_value(p[3]), convert_value(p[4])))
+            pid = cursor.lastrowid
+            
+            chars = convert_value(p[5])
+            if chars:
+                # IMDb character format: ["Char1","Char2"]
+                chars_list = chars.strip('[]').replace('"', '').split(',')
+                for cname in chars_list:
+                    if cname.strip():
+                        cursor.execute("INSERT INTO principal_characters (principal_id, character_name) VALUES (%s,%s)", (pid, cname.strip()))
+            
+            if i % 1000 == 0: connection.commit()
+    connection.commit()
+
+# 6. AKAS
+def load_akas(cursor, filename, limit):
+    print("→ Alternatif isimler (AKAS) yükleniyor...")
+    with open(filename, 'r', encoding='utf-8') as f:
+        next(f)
         batch = []
         count = 0
         
@@ -631,47 +239,17 @@ def load_episodes(cursor, filename, limit=None):
     print("\n→ Episodes tablosu yükleniyor...")
     
     with open(filename, 'r', encoding='utf-8') as f:
-        next(f)  # Header'ı atla
-        
+        next(f)
         batch = []
-        count = 0
-        
-        for line in f:
-            if limit and count >= limit:
-                break
-                
-            parts = line.strip().split('\t')
-            if len(parts) >= 4:
-                tconst = parts[0]
-                parentTconst = parts[1]
-                seasonNumber = convert_value(parts[2])
-                episodeNumber = convert_value(parts[3])
-                
-                batch.append((tconst, parentTconst, seasonNumber, episodeNumber))
-                
-                if len(batch) >= 1000:
-                    cursor.executemany(
-                        """INSERT IGNORE INTO episodes 
-                        (tconst, parentTconst, seasonNumber, episodeNumber) 
-                        VALUES (%s, %s, %s, %s)""",
-                        batch
-                    )
-                    connection.commit()
-                    count += len(batch)
-                    print(f"  {count} kayıt yüklendi...", end='\r')
-                    batch = []
-        
-        if batch:
-            cursor.executemany(
-                """INSERT IGNORE INTO episodes 
-                (tconst, parentTconst, seasonNumber, episodeNumber) 
-                VALUES (%s, %s, %s, %s)""",
-                batch
-            )
-            connection.commit()
-            count += len(batch)
-    
-    print(f"\n✓ {count} episodes kaydı yüklendi")
+        for i, line in enumerate(f):
+            if limit and i >= limit: break
+            p = line.strip().split('\t')
+            batch.append((p[0], p[1], convert_value(p[2]), convert_value(p[3])))
+            if len(batch) >= 2000:
+                cursor.executemany("INSERT IGNORE INTO episodes VALUES (%s,%s,%s,%s)", batch)
+                batch = []
+        if batch: cursor.executemany("INSERT IGNORE INTO episodes VALUES (%s,%s,%s,%s)", batch)
+    connection.commit()
 
 def main():
     """Ana fonksiyon"""
@@ -693,10 +271,7 @@ def main():
     print(f"{'!' * 60}\n")
     
     try:
-        cursor = connection.cursor()
-        
-        # Tabloları temizle (Foreign key sırasına göre)
-        print("\n→ Mevcut veriler temizleniyor...")
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
         tables_to_clear = [
             'people_professions',
@@ -785,12 +360,10 @@ def main():
         if filename:
             load_akas(cursor, filename, limit=None)
         
-        print("\n" + "=" * 60)
-        print("✓ Tüm veriler başarıyla yüklendi!")
-        print("=" * 60)
-        
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        print(f"\n✅ İşlem tamamlandı! Toplam süre: {time.time()-start:.2f} saniye.")
     except Exception as e:
-        print(f"\n✗ Hata oluştu: {e}")
+        print(f"\n❌ HATA: {e}")
         connection.rollback()
     finally:
         cursor.close()
@@ -798,7 +371,6 @@ def main():
 # Dosyanın en sonuna bunu yapıştır:
 
 if __name__ == "__main__":
-    start_time = time.time()
     main()
     elapsed = time.time() - start_time
     print(f"\nToplam süre: {elapsed:.2f} saniye ({elapsed/60:.2f} dakika)")

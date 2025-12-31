@@ -1,7 +1,10 @@
 from config import connection
 import json
 import pymysql
-from user import DictUser
+import sys
+
+sys.path.append("models")
+from models.user import DictUser
 
 
 class Database:
@@ -100,12 +103,12 @@ class Database:
             print("Failed to reconnect to the database.")
 
         order_by_mapping = {
-            'oldest': 'startYear ASC',
-            'newest': 'startYear DESC',
-            'content-name': 'primaryTitle ASC',
-            'default': 'tconst ASC'  # default
+            'oldest': 't.startYear ASC',
+            'newest': 't.startYear DESC',
+            'content-name': 't.primaryTitle ASC',
+            'default': 't.tconst ASC'  # default
         }
-        order_by = order_by_mapping.get(sort, 'tconst ASC')
+        order_by = order_by_mapping.get(sort, 't.tconst ASC')
 
         query = f"""SELECT
                         t.tconst,
@@ -130,7 +133,7 @@ class Database:
                             ORDER BY {order_by} LIMIT {limit};"""
 
             else:
-                query += f""" WHERE titles.primaryTitle LIKE '%{search_title}%' 
+                query += f""" WHERE t.primaryTitle LIKE '%{search_title}%' 
                               GROUP BY
                                 t.tconst,
                                 t.primaryTitle,
@@ -140,7 +143,7 @@ class Database:
 
 
             if group is not None:
-                query = f"SELECT COUNT({group}) as count, {group} as value from titles group by {group} LIMIT {limit};"
+                query = f"SELECT COUNT(*) as count, {group} as value from titles group by {group} order by count DESC LIMIT {limit};"
 
                 if group == "genres":
                     query = f"""
@@ -158,11 +161,12 @@ class Database:
             cursor.execute(query)
             titles = cursor.fetchall()
 
-            for title in titles:
-                if title["genres"]:
-                    title["genres"] = json.loads(title["genres"])
-                else:
-                    title["genres"] = []
+            if group is None:
+                for title in titles:
+                    if title["genres"]:
+                        title["genres"] = json.loads(title["genres"])
+                    else:
+                        title["genres"] = []
 
         return titles    
 
@@ -523,7 +527,7 @@ class Database:
                     COUNT(DISTINCT p.tconst) as total_titles,
                     COUNT(DISTINCT p.nconst) as total_people,
                     AVG(r.average_rating) as avg_title_rating,
-                    GROUP_CONCAT(DISTINCT t.genres SEPARATOR ', ') as all_genres,
+                    GROUP_CONCAT(DISTINCT gn.genre_name SEPARATOR ', ') as all_genres,
                     (
                         SELECT pe.primaryName 
                         FROM principals p2
@@ -536,7 +540,8 @@ class Database:
                 FROM principals p
                 LEFT JOIN titles t ON p.tconst = t.tconst
                 LEFT JOIN ratings r ON p.tconst = r.title_id
-                LEFT JOIN people pe ON p.nconst = pe.nconst
+                LEFT JOIN title_genres tg ON t.tconst = tg.tconst
+                LEFT JOIN genres gn ON tg.genre_id = gn.genre_id
                 WHERE p.category IS NOT NULL
                 GROUP BY p.category
                 HAVING COUNT(p.principal_id) > 0
@@ -1028,9 +1033,6 @@ class Database:
         return True
 
     def get_ratings_statistics(self):
-        """
-        ULTIMATE 5-TABLE JOIN QUERY
-        """
         try:
             connection.ping(reconnect=True)
         except Exception:
@@ -1042,19 +1044,18 @@ class Database:
                     t.primaryTitle,
                     r.average_rating,
                     r.num_votes,
-                    COALESCE(pd.primaryName, 'Unknown') as directors,
+                    COALESCE(GROUP_CONCAT(DISTINCT pd.primaryName SEPARATOR ', '), 'Unknown') as directors,
                     COUNT(DISTINCT a.region) as global_reach,
                     GROUP_CONCAT(DISTINCT p.primaryName SEPARATOR ', ') as top_cast
                 FROM 
                     (SELECT * FROM ratings LIMIT 200) r
                 JOIN titles t ON r.title_id = t.tconst
-                LEFT JOIN crew c ON t.tconst = c.tconst
-                LEFT JOIN people pd ON SUBSTRING_INDEX(c.directors, ',', 1) = pd.nconst
+                LEFT JOIN crew_directors cd ON t.tconst = cd.tconst
+                LEFT JOIN people pd ON cd.nconst = pd.nconst
                 LEFT JOIN akas a ON t.tconst = a.titleId
                 LEFT JOIN principals pr ON t.tconst = pr.tconst AND (pr.category LIKE 'act%')
                 LEFT JOIN people p ON pr.nconst = p.nconst
-                GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes, pd.primaryName
-                
+                GROUP BY t.tconst, t.primaryTitle, r.average_rating, r.num_votes
                 ORDER BY r.average_rating DESC
             """
             cursor.execute(query)
@@ -1141,39 +1142,34 @@ class Database:
         return episodes
     
     def get_episode(self, episode_tconst):
-        """Get a single episode with full details"""
-        try:
-            connection.ping(reconnect=True)
-        except pymysql.OperationalError:
-            print("Failed to reconnect to the database.")
-
+        self._ensure_connection()
         with connection.cursor() as cursor:
             query = """
                 SELECT 
-                    e.tconst,
-                    e.parentTconst,
-                    e.seasonNumber,
-                    e.episodeNumber,
-                    t.primaryTitle as episode_title,
-                    t.titleType,
-                    t.startYear as episode_year,
-                    t.runtimeMinutes,
-                    t.genres,
-                    pt.primaryTitle as parent_title,
-                    pt.startYear as parent_year
+                    e.tconst, e.parentTconst, e.seasonNumber, e.episodeNumber,
+                    t.primaryTitle as episode_title, t.titleType,
+                    t.startYear as episode_year, t.runtimeMinutes,
+                    pt.primaryTitle as parent_title, pt.startYear as parent_year,
+                    JSON_ARRAYAGG(g.genre_name) as genres
                 FROM episodes e
                 JOIN titles t ON e.tconst = t.tconst
                 LEFT JOIN titles pt ON e.parentTconst = pt.tconst
+                LEFT JOIN title_genres tg ON t.tconst = tg.tconst
+                LEFT JOIN genres g ON tg.genre_id = g.genre_id
                 WHERE e.tconst = %s
+                GROUP BY e.tconst, e.parentTconst, e.seasonNumber, e.episodeNumber, 
+                         t.primaryTitle, t.titleType, t.startYear, t.runtimeMinutes, 
+                         pt.primaryTitle, pt.startYear
             """
             cursor.execute(query, (episode_tconst,))
             episode = cursor.fetchone()
         
-        if episode is not None:
+        if episode:
+            # JSON string'i listeye çevir
+            if episode['genres']:
+                episode['genres'] = json.loads(episode['genres']) if isinstance(episode['genres'], str) else episode['genres']
             return episode
-        else:
-            print("Episode not found in database.")
-            return None
+        return None
     
     def add_episode(self, episode_tconst, parent_tconst, season_number, episode_number):
         """

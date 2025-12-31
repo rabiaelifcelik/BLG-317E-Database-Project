@@ -74,13 +74,14 @@ def titles_page(limit = 200):
 
 def titles_statistics_page():
     db = current_app.config["db"]
+    group = 'titleType'
     if request.method == "GET":
-        group = request.args.get('group-by', None)
+        group = request.args.get('group-by', 'titleType')
         print(group)
         print(request.args)
 
     stats = db.get_titles(group=group)
-    return render_template('title_statistics.html', stats=stats)
+    return render_template('title_statistics.html', stats=stats, group = group)
 
 def title_page(title_id):
     if request.method == "GET":
