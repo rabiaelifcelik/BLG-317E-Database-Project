@@ -17,16 +17,6 @@
         </div>
 
         {% if stats %}
-        <div class="stats-info-box" style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-            <h3 style="color: white; margin-top: 0;">📊 Query Details:</h3>
-            <ul style="color: white; line-height: 1.8;">
-                <li><strong>Complex Join:</strong> 4 tables joined (principals, titles, ratings, people)</li>
-                <li><strong>Nested Query:</strong> Subquery to find most active person per category</li>
-                <li><strong>Aggregations:</strong> COUNT, AVG, GROUP_CONCAT with GROUP BY category</li>
-                <li><strong>Left Joins:</strong> Preserves all principals even without matching titles/ratings</li>
-            </ul>
-        </div>
-
         <div class="scrollable-content">
             <table class="principals-table">
                 <thead>
