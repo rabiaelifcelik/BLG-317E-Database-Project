@@ -1,268 +1,158 @@
-"""
-IMDb Veritabanı Tablo Oluşturma Scripti
-Bu script tüm tabloları otomatik olarak oluşturur
-"""
-
-import pymysql
 from config import connection
+import pymysql
 
-def create_all_tables():
-    """Tüm tabloları oluştur"""
-    print("=" * 60)
-    print("IMDb Veritabanı Tablo Oluşturma")
-    print("=" * 60)
-    
+def setup_database():
+    # 1215 hatasını önlemek için ENGINE ve CHARSET'i her tabloda sabitliyoruz
+    table_options = "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+
+    sql_statements = [
+        "SET FOREIGN_KEY_CHECKS = 0;",
+        
+        # Tabloları tek tek silmek daha güvenlidir
+        "DROP TABLE IF EXISTS principal_characters;",
+        "DROP TABLE IF EXISTS principals;",
+        "DROP TABLE IF EXISTS crew_directors;",
+        "DROP TABLE IF EXISTS crew_writers;",
+        "DROP TABLE IF EXISTS crew;",
+        "DROP TABLE IF EXISTS title_genres;",
+        "DROP TABLE IF EXISTS genres;",
+        "DROP TABLE IF EXISTS people_professions;",
+        "DROP TABLE IF EXISTS professions;",
+        "DROP TABLE IF EXISTS episodes;",
+        "DROP TABLE IF EXISTS akas;",
+        "DROP TABLE IF EXISTS ratings;",
+        "DROP TABLE IF EXISTS people;",
+        "DROP TABLE IF EXISTS titles;",
+        "DROP TABLE IF EXISTS users;",
+
+        # 1. TITLES
+        f"""CREATE TABLE titles (
+            tconst VARCHAR(20) PRIMARY KEY,
+            titleType VARCHAR(50),
+            primaryTitle VARCHAR(500),
+            originalTitle VARCHAR(500),
+            isAdult TINYINT(1),
+            startYear INT,
+            endYear INT,
+            runtimeMinutes INT
+        ) {table_options};""",
+
+        # 2. PEOPLE
+        f"""CREATE TABLE people (
+            nconst VARCHAR(20) PRIMARY KEY,
+            primaryName VARCHAR(200),
+            birthYear INT,
+            deathYear INT,
+            most_known_title VARCHAR(20),
+            FOREIGN KEY (most_known_title) REFERENCES titles(tconst) ON DELETE SET NULL
+        ) {table_options};""",
+
+        # 3. GENRES & TITLE_GENRES
+        f"CREATE TABLE genres (genre_id INT AUTO_INCREMENT PRIMARY KEY, genre_name VARCHAR(50) UNIQUE) {table_options};",
+        f"""CREATE TABLE title_genres (
+            tconst VARCHAR(20),
+            genre_id INT,
+            PRIMARY KEY (tconst, genre_id),
+            FOREIGN KEY (tconst) REFERENCES titles(tconst) ON DELETE CASCADE,
+            FOREIGN KEY (genre_id) REFERENCES genres(genre_id) ON DELETE CASCADE
+        ) {table_options};""",
+
+        # 4. PROFESSIONS & PEOPLE_PROFESSIONS
+        f"CREATE TABLE professions (profession_id INT AUTO_INCREMENT PRIMARY KEY, profession_name VARCHAR(100) UNIQUE) {table_options};",
+        f"""CREATE TABLE people_professions (
+            nconst VARCHAR(20),
+            profession_id INT,
+            PRIMARY KEY (nconst, profession_id),
+            FOREIGN KEY (nconst) REFERENCES people(nconst) ON DELETE CASCADE,
+            FOREIGN KEY (profession_id) REFERENCES professions(profession_id) ON DELETE CASCADE
+        ) {table_options};""",
+
+        # 5. CREW & SUB-TABLES
+        f"CREATE TABLE crew (tconst VARCHAR(20) PRIMARY KEY, FOREIGN KEY (tconst) REFERENCES titles(tconst) ON DELETE CASCADE) {table_options};",
+        f"""CREATE TABLE crew_directors (
+            tconst VARCHAR(20),
+            nconst VARCHAR(20),
+            PRIMARY KEY (tconst, nconst),
+            FOREIGN KEY (tconst) REFERENCES crew(tconst) ON DELETE CASCADE,
+            FOREIGN KEY (nconst) REFERENCES people(nconst) ON DELETE CASCADE
+        ) {table_options};""",
+        f"""CREATE TABLE crew_writers (
+            tconst VARCHAR(20),
+            nconst VARCHAR(20),
+            PRIMARY KEY (tconst, nconst),
+            FOREIGN KEY (tconst) REFERENCES crew(tconst) ON DELETE CASCADE,
+            FOREIGN KEY (nconst) REFERENCES people(nconst) ON DELETE CASCADE
+        ) {table_options};""",
+
+        # 6. PRINCIPALS & CHARACTERS
+        f"""CREATE TABLE principals (
+            principal_id INT AUTO_INCREMENT PRIMARY KEY,
+            tconst VARCHAR(20),
+            ordering INT,
+            nconst VARCHAR(20),
+            category VARCHAR(100),
+            job TEXT,
+            FOREIGN KEY (tconst) REFERENCES titles(tconst) ON DELETE CASCADE,
+            FOREIGN KEY (nconst) REFERENCES people(nconst) ON DELETE CASCADE
+        ) {table_options};""",
+        f"""CREATE TABLE principal_characters (
+            character_id INT AUTO_INCREMENT PRIMARY KEY,
+            principal_id INT,
+            character_name VARCHAR(500),
+            FOREIGN KEY (principal_id) REFERENCES principals(principal_id) ON DELETE CASCADE
+        ) {table_options};""",
+
+        # 7. RATINGS, AKAS, EPISODES
+        f"""CREATE TABLE ratings (
+            rating_id INT AUTO_INCREMENT PRIMARY KEY,
+            title_id VARCHAR(20),
+            average_rating DECIMAL(3,1),
+            num_votes INT,
+            FOREIGN KEY (title_id) REFERENCES titles(tconst) ON DELETE CASCADE
+        ) {table_options};""",
+        f"""CREATE TABLE akas (
+            titleId VARCHAR(20),
+            ordering INT,
+            title VARCHAR(1000),
+            region VARCHAR(10),
+            language VARCHAR(10),
+            types VARCHAR(100),
+            attributes TEXT,
+            isOriginalTitle TINYINT(1),
+            PRIMARY KEY (titleId, ordering),
+            FOREIGN KEY (titleId) REFERENCES titles(tconst) ON DELETE CASCADE
+        ) {table_options};""",
+        f"""CREATE TABLE episodes (
+            tconst VARCHAR(20) PRIMARY KEY,
+            parentTconst VARCHAR(20),
+            seasonNumber INT,
+            episodeNumber INT,
+            FOREIGN KEY (tconst) REFERENCES titles(tconst) ON DELETE CASCADE,
+            FOREIGN KEY (parentTconst) REFERENCES titles(tconst) ON DELETE CASCADE
+        ) {table_options};""",
+
+        # 8. USERS
+        f"""CREATE TABLE users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            is_admin TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) {table_options};""",
+
+        "SET FOREIGN_KEY_CHECKS = 1;"
+    ]
+
     try:
-        cursor = connection.cursor()
-        
-        # Foreign key kontrolünü devre dışı bırak
-        print("\n→ Foreign key kontrolü devre dışı bırakılıyor...")
-        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-        
-        # Mevcut tabloları sil (dikkatli!)
-        print("→ Eski tablolar siliniyor...")
-        tables = [
-            'people_professions',
-            'professions', 
-            'principal_characters',
-            'principals',
-            'crew',
-            'ratings',
-            'akas',
-            'episodes',
-            'title_genres',
-            'genres',
-            'people',
-            'titles',
-            'users'
-        ]
-        
-        for table in tables:
-            cursor.execute(f"DROP TABLE IF EXISTS {table}")
-            print(f"  ✓ {table} silindi")
-        
-        # Foreign key kontrolünü aktif et
-        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-        print("→ Foreign key kontrolü aktif edildi\n")
-        
-        # 1. USERS TABLE
-        print("1. USERS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(80) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                is_admin BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Users tablosu oluşturuldu")
-        
-        # 2. TITLES TABLE
-        print("\n2. TITLES tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS titles (
-                tconst VARCHAR(20) NOT NULL,
-                titleType VARCHAR(50) DEFAULT NULL,
-                primaryTitle VARCHAR(500) DEFAULT NULL,
-                originalTitle VARCHAR(500) DEFAULT NULL,
-                isAdult TINYINT(1) DEFAULT 0,
-                startYear INT DEFAULT NULL,
-                endYear INT DEFAULT NULL,
-                runtimeMinutes INT DEFAULT NULL,
-                PRIMARY KEY (tconst),
-                KEY idx_title (primaryTitle(100)),
-                KEY idx_year (startYear),
-                KEY idx_type (titleType)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Titles tablosu oluşturuldu")
-        
-        # 3. GENRES TABLE
-        print("\n3. GENRES tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS genres (
-                genre_id INT NOT NULL AUTO_INCREMENT,
-                genre_name VARCHAR(50) NOT NULL,
-                PRIMARY KEY (genre_id),
-                UNIQUE KEY idx_genre_name (genre_name)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Genres tablosu oluşturuldu")
-        
-        # 4. TITLE_GENRES TABLE
-        print("\n4. TITLE_GENRES tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS title_genres (
-                tconst VARCHAR(20) NOT NULL,
-                genre_id INT NOT NULL,
-                PRIMARY KEY (tconst, genre_id),
-                CONSTRAINT fk_tg_title FOREIGN KEY (tconst) REFERENCES titles (tconst) ON DELETE CASCADE,
-                CONSTRAINT fk_tg_genre FOREIGN KEY (genre_id) REFERENCES genres (genre_id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Title_Genres tablosu oluşturuldu")
-        
-        # 5. RATINGS TABLE
-        print("\n5. RATINGS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS ratings (
-                title_id VARCHAR(20) NOT NULL,
-                average_rating DECIMAL(3,1) DEFAULT NULL,
-                num_votes INT DEFAULT NULL,
-                PRIMARY KEY (title_id),
-                CONSTRAINT fk_ratings_title FOREIGN KEY (title_id) REFERENCES titles (tconst) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Ratings tablosu oluşturuldu")
-        
-        # 6. CREW TABLE
-        print("\n6. CREW tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS crew (
-                tconst VARCHAR(20) NOT NULL,
-                directors TEXT,
-                writers TEXT,
-                PRIMARY KEY (tconst),
-                CONSTRAINT fk_crew_title FOREIGN KEY (tconst) REFERENCES titles (tconst) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Crew tablosu oluşturuldu")
-        
-        # 7. PEOPLE TABLE
-        print("\n7. PEOPLE tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS people (
-                nconst VARCHAR(20) NOT NULL,
-                primaryName VARCHAR(200) DEFAULT NULL,
-                birthYear INT DEFAULT NULL,
-                deathYear INT DEFAULT NULL,
-                most_known_title VARCHAR(20) DEFAULT NULL,
-                PRIMARY KEY (nconst),
-                KEY idx_name (primaryName(100)),
-                CONSTRAINT fk_people_most_known_title FOREIGN KEY (most_known_title) REFERENCES titles (tconst) ON DELETE SET NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ People tablosu oluşturuldu")
-        
-        # 8. PROFESSIONS TABLE
-        print("\n8. PROFESSIONS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS professions (
-                profession_id INT NOT NULL AUTO_INCREMENT,
-                profession_name VARCHAR(100) NOT NULL,
-                PRIMARY KEY (profession_id),
-                UNIQUE KEY idx_prof_name (profession_name)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Professions tablosu oluşturuldu")
-        
-        # 9. PEOPLE_PROFESSIONS TABLE
-        print("\n9. PEOPLE_PROFESSIONS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS people_professions (
-                nconst VARCHAR(20) NOT NULL,
-                profession_id INT NOT NULL,
-                PRIMARY KEY (nconst, profession_id),
-                CONSTRAINT fk_pp_person FOREIGN KEY (nconst) REFERENCES people (nconst) ON DELETE CASCADE,
-                CONSTRAINT fk_pp_profession FOREIGN KEY (profession_id) REFERENCES professions (profession_id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ People_Professions tablosu oluşturuldu")
-        
-        # 10. PRINCIPALS TABLE
-        print("\n10. PRINCIPALS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS principals (
-                principal_id INT AUTO_INCREMENT,
-                tconst VARCHAR(20) NOT NULL,
-                ordering INT DEFAULT NULL,
-                nconst VARCHAR(20) NOT NULL,
-                category VARCHAR(100) DEFAULT NULL,
-                job TEXT,
-                PRIMARY KEY (principal_id),
-                KEY idx_tconst (tconst),
-                KEY idx_nconst (nconst),
-                CONSTRAINT fk_principals_title FOREIGN KEY (tconst) REFERENCES titles (tconst) ON DELETE CASCADE,
-                CONSTRAINT fk_principals_person FOREIGN KEY (nconst) REFERENCES people (nconst) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Principals tablosu oluşturuldu")
-        
-        # 11. PRINCIPAL_CHARACTERS TABLE
-        print("\n11. PRINCIPAL_CHARACTERS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS principal_characters (
-                character_id INT AUTO_INCREMENT,
-                principal_id INT NOT NULL,
-                character_name VARCHAR(500) DEFAULT NULL,
-                PRIMARY KEY (character_id),
-                KEY idx_principal (principal_id),
-                CONSTRAINT fk_pc_principal FOREIGN KEY (principal_id) REFERENCES principals (principal_id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Principal_Characters tablosu oluşturuldu")
-        
-        # 12. AKAS TABLE
-        print("\n12. AKAS tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS akas (
-                aka_id INT AUTO_INCREMENT,
-                titleId VARCHAR(20) NOT NULL,
-                ordering INT DEFAULT NULL,
-                title VARCHAR(1000) DEFAULT NULL,
-                region VARCHAR(10) DEFAULT NULL,
-                language VARCHAR(10) DEFAULT NULL,
-                types VARCHAR(100) DEFAULT NULL,
-                attributes TEXT,
-                isOriginalTitle TINYINT(1) DEFAULT 0,
-                PRIMARY KEY (aka_id),
-                KEY idx_titleId (titleId),
-                KEY idx_region (region),
-                CONSTRAINT fk_akas_title FOREIGN KEY (titleId) REFERENCES titles (tconst) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Akas tablosu oluşturuldu")
-        
-        # 13. EPISODES TABLE
-        print("\n13. EPISODES tablosu oluşturuluyor...")
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS episodes (
-                tconst VARCHAR(20) NOT NULL,
-                parentTconst VARCHAR(20) NOT NULL,
-                seasonNumber INT DEFAULT NULL,
-                episodeNumber INT DEFAULT NULL,
-                PRIMARY KEY (tconst),
-                KEY idx_parent (parentTconst),
-                CONSTRAINT fk_episodes_title FOREIGN KEY (tconst) REFERENCES titles (tconst) ON DELETE CASCADE,
-                CONSTRAINT fk_episodes_parent FOREIGN KEY (parentTconst) REFERENCES titles (tconst) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-        print("  ✓ Episodes tablosu oluşturuldu")
-        
-        connection.commit()
-        
-        print("\n" + "=" * 60)
-        print("✓ TÜM TABLOLAR BAŞARIYLA OLUŞTURULDU!")
-        print("=" * 60)
-        
-        # Tablo sayısını kontrol et
-        cursor.execute("SHOW TABLES")
-        tables = cursor.fetchall()
-        print(f"\nToplam {len(tables)} tablo oluşturuldu:")
-        for table in tables:
-            table_name = list(table.values())[0]
-            print(f"  ✓ {table_name}")
-        
-        print("\n" + "=" * 60)
-        print("Şimdi 'python load_imdb_data.py' komutuyla verileri yükleyebilirsiniz")
-        print("=" * 60)
-        
+        connection.ping(reconnect=True)
+        with connection.cursor() as cursor:
+            for statement in sql_statements:
+                cursor.execute(statement)
+            connection.commit()
+            print("✅ Veri tabanı şeması hatasız şekilde oluşturuldu.")
     except Exception as e:
-        print(f"\n✗ HATA: {e}")
+        print(f"❌ Kritik Hata: {e}")
         connection.rollback()
-    finally:
-        cursor.close()
 
 if __name__ == "__main__":
-    create_all_tables()
+    setup_database()
