@@ -141,34 +141,72 @@ class Database:
                                 t.endYear  
                               ORDER BY {order_by} LIMIT {limit};"""
 
-
-            if group is not None:
-                query = f"SELECT COUNT(*) as count, {group} as value from titles group by {group} order by count DESC LIMIT {limit};"
-
-                if group == "genres":
-                    query = f"""
-                                SELECT
-                                    g.genre_name AS value,
-                                    COUNT(*) AS count
-                                FROM title_genres tg
-                                JOIN genres g
-                                    ON tg.genre_id = g.genre_id
-                                GROUP BY g.genre_name
-                                ORDER BY count DESC
-                                LIMIT {limit};
-                            """
-                
             cursor.execute(query)
             titles = cursor.fetchall()
 
-            if group is None:
-                for title in titles:
-                    if title["genres"]:
-                        title["genres"] = json.loads(title["genres"])
-                    else:
-                        title["genres"] = []
+           
+            for title in titles:
+                if title["genres"]:
+                    title["genres"] = json.loads(title["genres"])
+                else:
+                    title["genres"] = []
 
-        return titles    
+        return titles  
+
+    def get_title_statistics(self):
+        try:
+            connection.ping(reconnect=True)
+        except pymysql.OperationalError:
+            print("DB connection failed")
+            return []
+
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            query = """
+                SELECT
+                    t.tconst,
+                    t.primaryTitle,
+                    t.titleType,
+
+                    COUNT(DISTINCT CASE
+                        WHEN p.category IN ('actor', 'actress') THEN p.nconst
+                    END) AS cast_count,
+
+                    COUNT(DISTINCT CASE
+                        WHEN p.category IN ('writer', 'scenarist') THEN p.nconst
+                    END) AS writers_count,
+
+                    COUNT(DISTINCT a.language) AS language_count,
+                    COUNT(DISTINCT tg.genre_id) AS genre_count,
+                    COUNT(DISTINCT p.category) AS role_count,
+                    COUNT(DISTINCT p.nconst) AS total_people,
+
+                    ROUND(
+                        COUNT(DISTINCT p.nconst) /
+                        NULLIF(COUNT(DISTINCT p.category), 0),
+                        2
+                    ) AS specialization_ratio,
+
+                    (
+                        COUNT(DISTINCT p.nconst) * 0.5 +
+                        COUNT(DISTINCT tg.genre_id) * 2 +
+                        COUNT(DISTINCT a.language) * 3
+                    ) AS complexity_index
+
+                FROM titles t
+                LEFT JOIN principals p        ON p.tconst = t.tconst
+                LEFT JOIN akas a  ON a.titleId = t.tconst
+                LEFT JOIN title_genres tg     ON tg.tconst = t.tconst
+
+                WHERE t.titleType = 'movie'
+                GROUP BY t.tconst
+                ORDER BY complexity_index DESC
+                LIMIT 100;
+            """
+
+            cursor.execute(query)
+            return cursor.fetchall()
+
+  
 
     def get_crew(self,title_id):
         try:
